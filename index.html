@@ -507,7 +507,7 @@
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Send a new message
+             // Send a new message
         function sendMessage() {
             const text = messageInput.value.trim();
             if (!text && !fileInput.files[0]) return;
@@ -517,7 +517,193 @@
             const timestamp = Date.now();
             
             if (fileInput.files[0]) {
-                // File upload
+                // Upload file
+                const file = fileInput.files[0];
+                const fileType = file.type.split('/')[0];
+                const uploadTask = storage.ref(`messages/${conversationId}/${file.name}`).put(file);
+                
+                uploadTask.on('state_changed', 
+                    null, 
+                    error => {
+                        console.error('Upload failed:', error);
+                    }, 
+                    () => {
+                        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+                            const messageData = {
+                                senderId: currentUser.uid,
+                                timestamp: timestamp,
+                                [fileType + 'Url']: downloadURL
+                            };
+                            
+                            newMessageRef.set(messageData)
+                                .then(() => {
+                                    updateLastMessage(conversationId, fileType === 'image' ? 'Sent an image' : 'Sent a video');
+                                    fileInput.value = '';
+                                });
+                        });
+                    }
+                );
+            } else {
+                // Text message
+                const messageData = {
+                    text: text,
+                    senderId: currentUser.uid,
+                    timestamp: timestamp,
+                    delivered: false,
+                    seen: false
+                };
+                
+                newMessageRef.set(messageData)
+                    .then(() => {
+                        messageInput.value = '';
+                        updateLastMessage(conversationId, text);
+                    });
+            }
+        }
+
+        // Update last message in conversation
+        function updateLastMessage(conversationId, text) {
+            database.ref('conversations/' + conversationId).update({
+                lastMessage: text,
+                lastUpdated: Date.now()
+            });
+        }
+
+        // Setup call listeners
+        function setupCallListeners() {
+            sinchClient.on('callProgressing', call => {
+                callStatus.textContent = 'Calling...';
+                callContainer.style.display = 'flex';
+            });
+            
+            sinchClient.on('callEstablished', call => {
+                callStatus.textContent = 'Call in progress';
+                this.call = call;
+            });
+            
+            sinchClient.on('callEnded', call => {
+                callContainer.style.display = 'none';
+                remoteVideo.srcObject = null;
+                localVideo.srcObject = null;
+                this.call = null;
+            });
+            
+            sinchClient.on('incomingCall', call => {
+                callContactName.textContent = currentContact.name;
+                callStatus.textContent = 'Incoming call...';
+                callContainer.style.display = 'flex';
+                
+                // Answer button
+                const answerBtn = document.createElement('div');
+                answerBtn.className = 'call-btn call-answer';
+                answerBtn.innerHTML = '<i class="fas fa-phone"></i>';
+                answerBtn.addEventListener('click', () => {
+                    call.answer();
+                    setupCallStreams(call);
+                });
+                
+                callControls.insertBefore(answerBtn, endCallBtn);
+                this.call = call;
+            });
+        }
+
+        // Setup call streams
+        function setupCallStreams(call) {
+            call.on('stream', event => {
+                remoteVideo.srcObject = event.stream;
+            });
+            
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localVideo.srcObject = stream;
+                    call.sendStream(stream);
+                });
+        }
+
+        // Start a new call
+        function startCall(isVideo) {
+            if (!currentContact) return;
+            
+            callContactName.textContent = currentContact.name;
+            callStatus.textContent = 'Calling...';
+            callContainer.style.display = 'flex';
+            
+            const call = sinchClient.callUser(currentContact.id, isVideo);
+            setupCallStreams(call);
+            this.call = call;
+        }
+
+        // End current call
+        function endCall() {
+            if (call) {
+                call.hangup();
+            }
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            if (call) {
+                isMuted = !isMuted;
+                call.toggleMute(isMuted);
+                muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            }
+        }
+
+        // Toggle video
+        function toggleVideo() {
+            if (call) {
+                isVideoOn = !isVideoOn;
+                call.toggleVideo(isVideoOn);
+                videoToggleBtn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            }
+        }
+
+        // Format timestamp
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Generate conversation ID
+        function getConversationId(userId1, userId2) {
+            return [userId1, userId2].sort().join('_');
+        }
+
+        // Request notification permission
+        function requestNotificationPermission() {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                    setupPushNotifications();
+                }
+            });
+        }
+
+        // Setup push notifications
+        function setupPushNotifications() {
+            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then(currentToken => {
+                if (currentToken) {
+                    database.ref('users/' + currentUser.uid + '/pushToken').set(currentToken);
+                }
+            });
+            
+            messaging.onMessage(payload => {
+                const notification = new Notification(payload.notification.title, {
+                    body: payload.notification.body,
+                    icon: payload.notification.icon
+                });
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Message sending
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            // File upload
             fileUpload.addEventListener('click', () => fileInput.click());
             fileInput.addEventListener('change', sendMessage);
             
