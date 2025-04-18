@@ -275,7 +275,7 @@
 
         // Sinch configuration
         const sinchClient = new SinchClient({
-            applicationKey: "322b5ea2-af96-4f46-8e5d-325d3045bb61",
+            applicationKey: 'YOUR_SINCH_APP_KEY',
             capabilities: { calling: true, video: true },
             supportActiveConnection: true,
             onLogMessage: function(message) {
@@ -505,6 +505,729 @@
             
             // Scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messenger Clone</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #0084ff;
+            --secondary-color: #f0f2f5;
+            --dark-color: #1c1e21;
+            --light-color: #ffffff;
+            --gray-color: #65676b;
+            --border-color: #dddfe2;
+            --message-received: #e4e6eb;
+            --message-sent: #0084ff;
+        }
+
+        body.dark-mode {
+            --secondary-color: #18191a;
+            --dark-color: #e4e6eb;
+            --light-color: #242526;
+            --gray-color: #b0b3b8;
+            --border-color: #3e4042;
+            --message-received: #3e4042;
+            --message-sent: #0084ff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--secondary-color);
+            color: var(--dark-color);
+            height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 360px;
+            background-color: var(--light-color);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            transition: transform 0.3s;
+        }
+
+        /* ... (previous CSS styles remain the same) ... */
+
+        /* Call UI */
+        .call-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            display: none;
+        }
+
+        .call-video {
+            width: 100%;
+            max-width: 800px;
+            background-color: black;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .call-video video {
+            width: 100%;
+        }
+
+        .local-video {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 150px;
+            border: 2px solid white;
+            border-radius: 4px;
+        }
+
+        .call-controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 20px;
+        }
+
+        .call-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        .call-answer {
+            background-color: #31a24c;
+        }
+
+        .call-end {
+            background-color: #ff3b30;
+        }
+
+        .call-mute {
+            background-color: var(--gray-color);
+        }
+
+        .call-video-toggle {
+            background-color: var(--gray-color);
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 10;
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            .chat-area {
+                display: none;
+            }
+            .chat-area.active {
+                display: flex;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="user-profile">
+                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" id="current-user-img">
+                <span class="user-name" id="current-user-name">Loading...</span>
+            </div>
+            <div class="sidebar-icons">
+                <i class="fas fa-video" id="new-video-call"></i>
+                <i class="fas fa-edit"></i>
+                <i class="fas fa-ellipsis-h"></i>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search Messenger" id="search-contacts">
+            </div>
+        </div>
+
+        <div class="chats-list" id="contacts-list">
+            <!-- Contacts will be loaded here -->
+        </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="chat-area" id="chatArea">
+        <div class="chat-header">
+            <i class="fas fa-arrow-left" id="back-button"></i>
+            <div class="chat-avatar">
+                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Friend" id="current-contact-img">
+                <div class="online-status" id="online-status"></div>
+            </div>
+            <div class="chat-header-info">
+                <div class="chat-header-name" id="current-contact-name">Select a chat</div>
+                <div class="chat-header-status" id="current-contact-status">Offline</div>
+            </div>
+            <div class="chat-header-icons">
+                <i class="fas fa-video" id="video-call-btn"></i>
+                <i class="fas fa-phone" id="voice-call-btn"></i>
+                <i class="fas fa-search"></i>
+                <i class="fas fa-ellipsis-h"></i>
+            </div>
+        </div>
+
+        <div class="messages-container" id="messagesContainer">
+            <!-- Messages will be loaded here -->
+            <div class="welcome-message">
+                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hfJXYa1F3sL.ico" alt="Messenger">
+                <h3>Messenger</h3>
+                <p>Select a contact to start chatting</p>
+            </div>
+        </div>
+
+        <div class="message-input-container">
+            <div class="message-input-icons">
+                <i class="fas fa-plus"></i>
+                <i class="fas fa-image" id="file-upload"></i>
+                <i class="fas fa-gift"></i>
+            </div>
+            <div class="message-input">
+                <input type="text" placeholder="Type a message" id="messageInput">
+                <input type="file" id="fileInput" style="display: none;" accept="image/*, video/*">
+            </div>
+            <button class="send-button" id="sendButton">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Call UI -->
+    <div class="call-container" id="callContainer">
+        <div class="call-video">
+            <video id="remoteVideo" autoplay></video>
+            <video id="localVideo" class="local-video" autoplay muted></video>
+        </div>
+        <div class="call-info">
+            <h2 id="call-contact-name">Calling...</h2>
+            <p id="call-status">Connecting...</p>
+        </div>
+        <div class="call-controls">
+            <div class="call-btn call-mute" id="muteBtn">
+                <i class="fas fa-microphone"></i>
+            </div>
+            <div class="call-btn call-video-toggle" id="videoToggleBtn">
+                <i class="fas fa-video"></i>
+            </div>
+            <div class="call-btn call-end" id="endCallBtn">
+                <i class="fas fa-phone"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme Switcher -->
+    <div class="theme-switcher" id="themeSwitcher">
+        <i class="fas fa-moon"></i>
+    </div>
+
+    <!-- Firebase and Sinch SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
+    <script src="https://sdk.sinch.com/latest/js/sinch.min.js"></script>
+
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB49vRPX8YaWuTP5GS3lsBDqdAaz_hJYAw",
+            authDomain: "onlineshop-849c8.firebaseapp.com",
+            databaseURL: "https://onlineshop-849c8.firebaseio.com",
+            projectId: "onlineshop-849c8",
+            storageBucket: "onlineshop-849c8.appspot.com",
+            messagingSenderId: "883512833370",
+            appId: "1:883512833370:web:a1c8412b158f8744afef63"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        const storage = firebase.storage();
+        const messaging = firebase.messaging();
+
+        // Sinch configuration
+        const sinchClient = new SinchClient({
+            applicationKey: 'YOUR_SINCH_APP_KEY',
+            capabilities: { calling: true, video: true },
+            supportActiveConnection: true,
+            onLogMessage: function(message) {
+                console.log(message.message);
+            },
+        });
+
+        // DOM elements
+        const sidebar = document.getElementById('sidebar');
+        const chatArea = document.getElementById('chatArea');
+        const contactsList = document.getElementById('contacts-list');
+        const messagesContainer = document.getElementById('messagesContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const fileUpload = document.getElementById('file-upload');
+        const fileInput = document.getElementById('fileInput');
+        const currentUserImg = document.getElementById('current-user-img');
+        const currentUserName = document.getElementById('current-user-name');
+        const currentContactImg = document.getElementById('current-contact-img');
+        const currentContactName = document.getElementById('current-contact-name');
+        const currentContactStatus = document.getElementById('current-contact-status');
+        const onlineStatus = document.getElementById('online-status');
+        const backButton = document.getElementById('back-button');
+        const videoCallBtn = document.getElementById('video-call-btn');
+        const voiceCallBtn = document.getElementById('voice-call-btn');
+        const newVideoCall = document.getElementById('new-video-call');
+        const themeSwitcher = document.getElementById('themeSwitcher');
+        const searchContacts = document.getElementById('search-contacts');
+        const callContainer = document.getElementById('callContainer');
+        const remoteVideo = document.getElementById('remoteVideo');
+        const localVideo = document.getElementById('localVideo');
+        const callContactName = document.getElementById('call-contact-name');
+        const callStatus = document.getElementById('call-status');
+        const muteBtn = document.getElementById('muteBtn');
+        const videoToggleBtn = document.getElementById('videoToggleBtn');
+        const endCallBtn = document.getElementById('endCallBtn');
+
+        // App state
+        let currentUser = null;
+        let currentContact = null;
+        let contacts = [];
+        let messages = [];
+        let call = null;
+        let isMuted = false;
+        let isVideoOn = true;
+
+        // Initialize the app
+        function init() {
+            setupEventListeners();
+            checkAuthState();
+            requestNotificationPermission();
+        }
+
+        // Check authentication state
+        function checkAuthState() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    setupUser(user);
+                    loadContacts();
+                } else {
+                    showAuthModal();
+                }
+            });
+        }
+
+        // Show authentication modal
+        function showAuthModal() {
+            // In a real app, you'd show a proper login modal
+            const email = prompt('Enter your email:');
+            const password = prompt('Enter your password:');
+            
+            auth.signInWithEmailAndPassword(email, password)
+                .catch(error => {
+                    alert('Login failed: ' + error.message);
+                    showAuthModal();
+                });
+        }
+
+        // Setup user profile
+        function setupUser(user) {
+            currentUserName.textContent = user.displayName || user.email;
+            
+            // In a real app, you'd load the user's profile picture
+            database.ref('users/' + user.uid).once('value').then(snapshot => {
+                const userData = snapshot.val();
+                if (userData && userData.profilepic) {
+                    currentUserImg.src = userData.profilepic;
+                }
+            });
+            
+            // Initialize Sinch client
+            sinchClient.start({ user: { userId: user.uid } })
+                .then(() => {
+                    console.log('Sinch client started');
+                    setupCallListeners();
+                })
+                .catch(error => {
+                    console.error('Error starting Sinch client:', error);
+                });
+        }
+
+        // Load contacts from Firebase
+        function loadContacts() {
+            database.ref('users').on('value', snapshot => {
+                contacts = [];
+                snapshot.forEach(childSnapshot => {
+                    if (childSnapshot.key !== currentUser.uid) {
+                        const contact = childSnapshot.val();
+                        contact.id = childSnapshot.key;
+                        contacts.push(contact);
+                    }
+                });
+                renderContacts(contacts);
+            });
+        }
+
+        // Render contacts list
+        function renderContacts(contactsToRender) {
+            contactsList.innerHTML = '';
+            
+            if (contactsToRender.length === 0) {
+                contactsList.innerHTML = '<div class="no-contacts">No contacts found</div>';
+                return;
+            }
+            
+            contactsToRender.forEach(contact => {
+                const contactItem = document.createElement('div');
+                contactItem.className = 'chat-item';
+                contactItem.innerHTML = `
+                    <div class="chat-avatar">
+                        <img src="${contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="${contact.name}">
+                        ${contact.online === "true" ? '<div class="online-status"></div>' : ''}
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${contact.name || contact.email}</div>
+                        <div class="chat-preview">
+                            <div class="chat-preview-text">${contact.status || 'Available'}</div>
+                            <div class="chat-time">${contact.lastOnline ? formatTime(contact.lastOnline) : ''}</div>
+                        </div>
+                    </div>
+                `;
+                
+                contactItem.addEventListener('click', () => {
+                    selectContact(contact);
+                });
+                
+                contactsList.appendChild(contactItem);
+            });
+        }
+
+        // Select a contact to chat with
+        function selectContact(contact) {
+            currentContact = contact;
+            currentContactImg.src = contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg';
+            currentContactName.textContent = contact.name || contact.email;
+            currentContactStatus.textContent = contact.online === "true" ? 'Online' : 'Offline';
+            onlineStatus.style.display = contact.online === "true" ? 'block' : 'none';
+            
+            // Load messages
+            loadMessages(contact.id);
+            
+            // For mobile view
+            if (window.innerWidth <= 900) {
+                sidebar.classList.remove('active');
+                chatArea.classList.add('active');
+            }
+        }
+
+        // Load messages for a conversation
+        function loadMessages(contactId) {
+            messagesContainer.innerHTML = '';
+            
+            const conversationId = getConversationId(currentUser.uid, contactId);
+            database.ref('messages/' + conversationId).orderByChild('timestamp').on('value', snapshot => {
+                messages = [];
+                snapshot.forEach(childSnapshot => {
+                    const message = childSnapshot.val();
+                    message.id = childSnapshot.key;
+                    messages.push(message);
+                });
+                
+                renderMessages();
+            });
+        }
+
+        // Render messages
+        function renderMessages() {
+            messagesContainer.innerHTML = '';
+            
+            if (messages.length === 0) {
+                messagesContainer.innerHTML = '<div class="no-messages">No messages yet</div>';
+                return;
+            }
+            
+            messages.forEach(message => {
+                const isSent = message.senderId === currentUser.uid;
+                const messageElement = document.createElement('div');
+                messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
+                
+                let messageContent = message.text;
+                if (message.imageUrl) {
+                    messageContent = `<img src="${message.imageUrl}" class="message-image">`;
+                } else if (message.videoUrl) {
+                    messageContent = `
+                        <video controls class="message-video">
+                            <source src="${message.videoUrl}" type="video/mp4">
+                        </video>
+                    `;
+                }
+                
+                messageElement.innerHTML = `
+                    ${messageContent}
+                    <div class="message-time">
+                        ${formatTime(message.timestamp)}
+                        ${isSent ? 
+                            `<span class="message-status">
+                                ${message.seen ? '<i class="fas fa-check-double seen"></i>' : 
+                                 message.delivered ? '<i class="fas fa-check-double"></i>' : 
+                                 '<i class="fas fa-check"></i>'}
+                            </span>` : ''}
+                    </div>
+                `;
+                
+                messagesContainer.appendChild(messageElement);
+            });
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        // Send a new message
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if (!text && !fileInput.files[0]) return;
+            
+            const conversationId = getConversationId(currentUser.uid, currentContact.id);
+            const newMessageRef = database.ref('messages/' + conversationId).push();
+            const timestamp = Date.now();
+            
+            if (fileInput.files[0]) {
+                // Upload file
+                const file = fileInput.files[0];
+                const fileType = file.type.split('/')[0];
+                const uploadTask = storage.ref(`messages/${conversationId}/${file.name}`).put(file);
+                
+                uploadTask.on('state_changed', 
+                    null, 
+                    error => {
+                        console.error('Upload failed:', error);
+                    }, 
+                    () => {
+                        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
+                            const messageData = {
+                                senderId: currentUser.uid,
+                                timestamp: timestamp,
+                                [fileType + 'Url']: downloadURL
+                            };
+                            
+                            newMessageRef.set(messageData)
+                                .then(() => {
+                                    updateLastMessage(conversationId, fileType === 'image' ? 'Sent an image' : 'Sent a video');
+                                    fileInput.value = '';
+                                });
+                        });
+                    }
+                );
+            } else {
+                // Text message
+                const messageData = {
+                    text: text,
+                    senderId: currentUser.uid,
+                    timestamp: timestamp,
+                    delivered: false,
+                    seen: false
+                };
+                
+                newMessageRef.set(messageData)
+                    .then(() => {
+                        messageInput.value = '';
+                        updateLastMessage(conversationId, text);
+                    });
+            }
+        }
+
+        // Update last message in conversation
+        function updateLastMessage(conversationId, text) {
+            database.ref('conversations/' + conversationId).update({
+                lastMessage: text,
+                lastUpdated: Date.now()
+            });
+        }
+
+        // Setup call listeners
+        function setupCallListeners() {
+            sinchClient.on('callProgressing', call => {
+                callStatus.textContent = 'Calling...';
+                callContainer.style.display = 'flex';
+            });
+            
+            sinchClient.on('callEstablished', call => {
+                callStatus.textContent = 'Call in progress';
+                this.call = call;
+            });
+            
+            sinchClient.on('callEnded', call => {
+                callContainer.style.display = 'none';
+                remoteVideo.srcObject = null;
+                localVideo.srcObject = null;
+                this.call = null;
+            });
+            
+            sinchClient.on('incomingCall', call => {
+                callContactName.textContent = currentContact.name;
+                callStatus.textContent = 'Incoming call...';
+                callContainer.style.display = 'flex';
+                
+                // Answer button
+                const answerBtn = document.createElement('div');
+                answerBtn.className = 'call-btn call-answer';
+                answerBtn.innerHTML = '<i class="fas fa-phone"></i>';
+                answerBtn.addEventListener('click', () => {
+                    call.answer();
+                    setupCallStreams(call);
+                });
+                
+                callControls.insertBefore(answerBtn, endCallBtn);
+                this.call = call;
+            });
+        }
+
+        // Setup call streams
+        function setupCallStreams(call) {
+            call.on('stream', event => {
+                remoteVideo.srcObject = event.stream;
+            });
+            
+            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                .then(stream => {
+                    localVideo.srcObject = stream;
+                    call.sendStream(stream);
+                });
+        }
+
+        // Start a new call
+        function startCall(isVideo) {
+            if (!currentContact) return;
+            
+            callContactName.textContent = currentContact.name;
+            callStatus.textContent = 'Calling...';
+            callContainer.style.display = 'flex';
+            
+            const call = sinchClient.callUser(currentContact.id, isVideo);
+            setupCallStreams(call);
+            this.call = call;
+        }
+
+        // End current call
+        function endCall() {
+            if (call) {
+                call.hangup();
+            }
+        }
+
+        // Toggle mute
+        function toggleMute() {
+            if (call) {
+                isMuted = !isMuted;
+                call.toggleMute(isMuted);
+                muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+            }
+        }
+
+        // Toggle video
+        function toggleVideo() {
+            if (call) {
+                isVideoOn = !isVideoOn;
+                call.toggleVideo(isVideoOn);
+                videoToggleBtn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+            }
+        }
+
+        // Format timestamp
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Generate conversation ID
+        function getConversationId(userId1, userId2) {
+            return [userId1, userId2].sort().join('_');
+        }
+
+        // Request notification permission
+        function requestNotificationPermission() {
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') {
+                    console.log('Notification permission granted');
+                    setupPushNotifications();
+                }
+            });
+        }
+
+        // Setup push notifications
+        function setupPushNotifications() {
+            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then(currentToken => {
+                if (currentToken) {
+                    database.ref('users/' + currentUser.uid + '/pushToken').set(currentToken);
+                }
+            });
+            
+            messaging.onMessage(payload => {
+                const notification = new Notification(payload.notification.title, {
+                    body: payload.notification.body,
+                    icon: payload.notification.icon
+                });
+            });
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Message sending
+            sendButton.addEventListener('click', sendMessage);
+            messageInput.addEventListener('keypress', e => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            // File upload
+            fileUpload.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', sendMessage);
+            
+            // Calls
+            videoCallBtn.addEventListener('click', () => startCall(true));
+            voiceCallBtn.addEventListener('click', () => startCall(false));
+            newVideoCall.addEventListener('click', () => {
+                // In a real app, you'd show a contact picker
+                alert('Select a contact to call first');
+            });
+            
+            // Call controls
+            endCallBtn.addEventListener('click', endCall);
+            muteBtn.addEventListener('click', toggleMute);
+  ollTop = messagesContainer.scrollHeight;
         }
 
              // Send a new message
