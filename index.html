@@ -3,1486 +3,371 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger Clone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Shipping Records</title>
     <style>
-        :root {
-            --primary-color: #0084ff;
-            --secondary-color: #f0f2f5;
-            --dark-color: #1c1e21;
-            --light-color: #ffffff;
-            --gray-color: #65676b;
-            --border-color: #dddfe2;
-            --message-received: #e4e6eb;
-            --message-sent: #0084ff;
-        }
-
-        body.dark-mode {
-            --secondary-color: #18191a;
-            --dark-color: #e4e6eb;
-            --light-color: #242526;
-            --gray-color: #b0b3b8;
-            --border-color: #3e4042;
-            --message-received: #3e4042;
-            --message-sent: #0084ff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
         body {
-            background-color: var(--secondary-color);
-            color: var(--dark-color);
-            height: 100vh;
-            display: flex;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-
-        /* Sidebar */
-        .sidebar {
-            width: 360px;
-            background-color: var(--light-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            transition: transform 0.3s;
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
         }
-
-        /* ... (previous CSS styles remain the same) ... */
-
-        /* Call UI */
-        .call-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            display: none;
-        }
-
-        .call-video {
-            width: 100%;
-            max-width: 800px;
-            background-color: black;
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
             border-radius: 8px;
-            overflow: hidden;
-            position: relative;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
         }
-
-        .call-video video {
+        table {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-
-        .local-video {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 150px;
-            border: 2px solid white;
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .pagination button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 8px 16px;
+            margin: 0 4px;
+            cursor: pointer;
             border-radius: 4px;
         }
-
-        .call-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 20px;
+        .pagination button:hover {
+            background-color: #45a049;
         }
-
-        .call-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+        .pagination button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .search-container {
+            margin-bottom: 20px;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        #searchInput {
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 700px;
+            border-radius: 8px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
             cursor: pointer;
-            font-size: 24px;
         }
-
-        .call-answer {
-            background-color: #31a24c;
+        .close:hover {
+            color: black;
         }
-
-        .call-end {
-            background-color: #ff3b30;
+        .detail-row {
+            margin-bottom: 10px;
+            display: flex;
         }
-
-        .call-mute {
-            background-color: var(--gray-color);
+        .detail-label {
+            font-weight: bold;
+            width: 150px;
         }
-
-        .call-video-toggle {
-            background-color: var(--gray-color);
+        .detail-value {
+            flex: 1;
         }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .sidebar {
+        @media screen and (max-width: 768px) {
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            .search-container {
+                flex-direction: column;
+            }
+            #searchInput {
                 width: 100%;
-                position: absolute;
-                z-index: 10;
-                transform: translateX(-100%);
+                margin-bottom: 10px;
             }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            .chat-area {
-                display: none;
-            }
-            .chat-area.active {
-                display: flex;
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="user-profile">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" id="current-user-img">
-                <span class="user-name" id="current-user-name">Loading...</span>
-            </div>
-            <div class="sidebar-icons">
-                <i class="fas fa-video" id="new-video-call"></i>
-                <i class="fas fa-edit"></i>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
-        </div>
-
+    <div class="container">
+        <h1>Shipping Records</h1>
+        
         <div class="search-container">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search Messenger" id="search-contacts">
+            <input type="text" id="searchInput" placeholder="Search by account name, phone, or item..." onkeyup="searchTable()">
+            <div>
+                <span>Show </span>
+                <select id="rowsPerPage" onchange="changeRowsPerPage()">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+                <span> entries</span>
             </div>
         </div>
-
-        <div class="chats-list" id="contacts-list">
-            <!-- Contacts will be loaded here -->
-        </div>
-    </div>
-
-    <!-- Chat Area -->
-    <div class="chat-area" id="chatArea">
-        <div class="chat-header">
-            <i class="fas fa-arrow-left" id="back-button"></i>
-            <div class="chat-avatar">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Friend" id="current-contact-img">
-                <div class="online-status" id="online-status"></div>
-            </div>
-            <div class="chat-header-info">
-                <div class="chat-header-name" id="current-contact-name">Select a chat</div>
-                <div class="chat-header-status" id="current-contact-status">Offline</div>
-            </div>
-            <div class="chat-header-icons">
-                <i class="fas fa-video" id="video-call-btn"></i>
-                <i class="fas fa-phone" id="voice-call-btn"></i>
-                <i class="fas fa-search"></i>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
-        </div>
-
-        <div class="messages-container" id="messagesContainer">
-            <!-- Messages will be loaded here -->
-            <div class="welcome-message">
-                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hfJXYa1F3sL.ico" alt="Messenger">
-                <h3>Messenger</h3>
-                <p>Select a contact to start chatting</p>
-            </div>
-        </div>
-
-        <div class="message-input-container">
-            <div class="message-input-icons">
-                <i class="fas fa-plus"></i>
-                <i class="fas fa-image" id="file-upload"></i>
-                <i class="fas fa-gift"></i>
-            </div>
-            <div class="message-input">
-                <input type="text" placeholder="Type a message" id="messageInput">
-                <input type="file" id="fileInput" style="display: none;" accept="image/*, video/*">
-            </div>
-            <button class="send-button" id="sendButton">
-                <i class="fas fa-paper-plane"></i>
-            </button>
+        
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Date</th>
+                    <th>Code</th>
+                    <th>Account Name</th>
+                    <th>Phone</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Price (Baht)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data will be loaded here -->
+            </tbody>
+        </table>
+        
+        <div class="pagination">
+            <button id="prevBtn" onclick="prevPage()" disabled>Previous</button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextBtn" onclick="nextPage()" disabled>Next</button>
         </div>
     </div>
-
-    <!-- Call UI -->
-    <div class="call-container" id="callContainer">
-        <div class="call-video">
-            <video id="remoteVideo" autoplay></video>
-            <video id="localVideo" class="local-video" autoplay muted></video>
-        </div>
-        <div class="call-info">
-            <h2 id="call-contact-name">Calling...</h2>
-            <p id="call-status">Connecting...</p>
-        </div>
-        <div class="call-controls">
-            <div class="call-btn call-mute" id="muteBtn">
-                <i class="fas fa-microphone"></i>
-            </div>
-            <div class="call-btn call-video-toggle" id="videoToggleBtn">
-                <i class="fas fa-video"></i>
-            </div>
-            <div class="call-btn call-end" id="endCallBtn">
-                <i class="fas fa-phone"></i>
+    
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Shipping Details</h2>
+            <div id="modalContent">
+                <!-- Details will be loaded here -->
             </div>
         </div>
     </div>
-
-    <!-- Theme Switcher -->
-    <div class="theme-switcher" id="themeSwitcher">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <!-- Firebase and Sinch SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
-    <script src="https://sdk.sinch.com/latest/js/sinch.min.js"></script>
-
+    
     <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyB49vRPX8YaWuTP5GS3lsBDqdAaz_hJYAw",
-            authDomain: "onlineshop-849c8.firebaseapp.com",
-            databaseURL: "https://onlineshop-849c8.firebaseio.com",
-            projectId: "onlineshop-849c8",
-            storageBucket: "onlineshop-849c8.appspot.com",
-            messagingSenderId: "883512833370",
-            appId: "1:883512833370:web:a1c8412b158f8744afef63"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const storage = firebase.storage();
-        const messaging = firebase.messaging();
-
-        // Sinch configuration
-        const sinchClient = new SinchClient({
-            applicationKey: 'YOUR_SINCH_APP_KEY',
-            capabilities: { calling: true, video: true },
-            supportActiveConnection: true,
-            onLogMessage: function(message) {
-                console.log(message.message);
-            },
-        });
-
-        // DOM elements
-        const sidebar = document.getElementById('sidebar');
-        const chatArea = document.getElementById('chatArea');
-        const contactsList = document.getElementById('contacts-list');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const fileUpload = document.getElementById('file-upload');
-        const fileInput = document.getElementById('fileInput');
-        const currentUserImg = document.getElementById('current-user-img');
-        const currentUserName = document.getElementById('current-user-name');
-        const currentContactImg = document.getElementById('current-contact-img');
-        const currentContactName = document.getElementById('current-contact-name');
-        const currentContactStatus = document.getElementById('current-contact-status');
-        const onlineStatus = document.getElementById('online-status');
-        const backButton = document.getElementById('back-button');
-        const videoCallBtn = document.getElementById('video-call-btn');
-        const voiceCallBtn = document.getElementById('voice-call-btn');
-        const newVideoCall = document.getElementById('new-video-call');
-        const themeSwitcher = document.getElementById('themeSwitcher');
-        const searchContacts = document.getElementById('search-contacts');
-        const callContainer = document.getElementById('callContainer');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const localVideo = document.getElementById('localVideo');
-        const callContactName = document.getElementById('call-contact-name');
-        const callStatus = document.getElementById('call-status');
-        const muteBtn = document.getElementById('muteBtn');
-        const videoToggleBtn = document.getElementById('videoToggleBtn');
-        const endCallBtn = document.getElementById('endCallBtn');
-
-        // App state
-        let currentUser = null;
-        let currentContact = null;
-        let contacts = [];
-        let messages = [];
-        let call = null;
-        let isMuted = false;
-        let isVideoOn = true;
-
-        // Initialize the app
-        function init() {
-            setupEventListeners();
-            checkAuthState();
-            requestNotificationPermission();
-        }
-
-        // Check authentication state
-        function checkAuthState() {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    setupUser(user);
-                    loadContacts();
-                } else {
-                    showAuthModal();
-                }
-            });
-        }
-
-        // Show authentication modal
-        function showAuthModal() {
-            // In a real app, you'd show a proper login modal
-            const email = prompt('Enter your email:');
-            const password = prompt('Enter your password:');
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(error => {
-                    alert('Login failed: ' + error.message);
-                    showAuthModal();
-                });
-        }
-
-        // Setup user profile
-        function setupUser(user) {
-            currentUserName.textContent = user.displayName || user.email;
-            
-            // In a real app, you'd load the user's profile picture
-            database.ref('users/' + user.uid).once('value').then(snapshot => {
-                const userData = snapshot.val();
-                if (userData && userData.profilepic) {
-                    currentUserImg.src = userData.profilepic;
-                }
-            });
-            
-            // Initialize Sinch client
-            sinchClient.start({ user: { userId: user.uid } })
-                .then(() => {
-                    console.log('Sinch client started');
-                    setupCallListeners();
-                })
-                .catch(error => {
-                    console.error('Error starting Sinch client:', error);
-                });
-        }
-
-        // Load contacts from Firebase
-        function loadContacts() {
-            database.ref('users').on('value', snapshot => {
-                contacts = [];
-                snapshot.forEach(childSnapshot => {
-                    if (childSnapshot.key !== currentUser.uid) {
-                        const contact = childSnapshot.val();
-                        contact.id = childSnapshot.key;
-                        contacts.push(contact);
-                    }
-                });
-                renderContacts(contacts);
-            });
-        }
-
-        // Render contacts list
-        function renderContacts(contactsToRender) {
-            contactsList.innerHTML = '';
-            
-            if (contactsToRender.length === 0) {
-                contactsList.innerHTML = '<div class="no-contacts">No contacts found</div>';
-                return;
-            }
-            
-            contactsToRender.forEach(contact => {
-                const contactItem = document.createElement('div');
-                contactItem.className = 'chat-item';
-                contactItem.innerHTML = `
-                    <div class="chat-avatar">
-                        <img src="${contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="${contact.name}">
-                        ${contact.online === "true" ? '<div class="online-status"></div>' : ''}
-                    </div>
-                    <div class="chat-info">
-                        <div class="chat-name">${contact.name || contact.email}</div>
-                        <div class="chat-preview">
-                            <div class="chat-preview-text">${contact.status || 'Available'}</div>
-                            <div class="chat-time">${contact.lastOnline ? formatTime(contact.lastOnline) : ''}</div>
-                        </div>
-                    </div>
-                `;
-                
-                contactItem.addEventListener('click', () => {
-                    selectContact(contact);
-                });
-                
-                contactsList.appendChild(contactItem);
-            });
-        }
-
-        // Select a contact to chat with
-        function selectContact(contact) {
-            currentContact = contact;
-            currentContactImg.src = contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg';
-            currentContactName.textContent = contact.name || contact.email;
-            currentContactStatus.textContent = contact.online === "true" ? 'Online' : 'Offline';
-            onlineStatus.style.display = contact.online === "true" ? 'block' : 'none';
-            
-            // Load messages
-            loadMessages(contact.id);
-            
-            // For mobile view
-            if (window.innerWidth <= 900) {
-                sidebar.classList.remove('active');
-                chatArea.classList.add('active');
+        let allData = [];
+        let currentPage = 1;
+        let rowsPerPage = 10;
+        let filteredData = [];
+        
+        // Fetch data from API
+        async function fetchData() {
+            try {
+                const response = await fetch('https://opensheet.elk.sh/19SPIZrH3EdkPLv3zYHtZVvmnhU-NcHCYUiIpDK3ON4s/10');
+                allData = await response.json();
+                filteredData = [...allData];
+                renderTable();
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('tableBody').innerHTML = '<tr><td colspan="9" style="text-align: center;">Error loading data. Please try again later.</td></tr>';
             }
         }
-
-        // Load messages for a conversation
-        function loadMessages(contactId) {
-            messagesContainer.innerHTML = '';
+        
+        // Render table with current data
+        function renderTable() {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
             
-            const conversationId = getConversationId(currentUser.uid, contactId);
-            database.ref('messages/' + conversationId).orderByChild('timestamp').on('value', snapshot => {
-                messages = [];
-                snapshot.forEach(childSnapshot => {
-                    const message = childSnapshot.val();
-                    message.id = childSnapshot.key;
-                    messages.push(message);
-                });
-                
-                renderMessages();
-            });
-        }
-
-        // Render messages
-        function renderMessages() {
-            messagesContainer.innerHTML = '';
+            const startIndex = (currentPage - 1) * rowsPerPage;
+            const endIndex = startIndex + rowsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
             
-            if (messages.length === 0) {
-                messagesContainer.innerHTML = '<div class="no-messages">No messages yet</div>';
-                return;
-            }
-            
-            messages.forEach(message => {
-                const isSent = message.senderId === currentUser.uid;
-                const messageElement = document.createElement('div');
-                messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
-                
-                let messageContent = message.text;
-                if (message.imageUrl) {
-                    messageContent = `<img src="${message.imageUrl}" class="message-image">`;
-                } else if (message.videoUrl) {
-                    messageContent = `
-                        <video controls class="message-video">
-                            <source src="${message.videoUrl}" type="video/mp4">
-                        </video>
-                    `;
-                }
-                
-                messageElement.innerHTML = `
-                    ${messageContent}
-                    <div class="message-time">
-                        ${formatTime(message.timestamp)}
-                        ${isSent ? 
-                            `<span class="message-status">
-                                ${message.seen ? '<i class="fas fa-check-double seen"></i>' : 
-                                 message.delivered ? '<i class="fas fa-check-double"></i>' : 
-                                 '<i class="fas fa-check"></i>'}
-                            </span>` : ''}
-                    </div>
-                `;
-                
-                messagesContainer.appendChild(messageElement);
-            });
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messenger Clone</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        :root {
-            --primary-color: #0084ff;
-            --secondary-color: #f0f2f5;
-            --dark-color: #1c1e21;
-            --light-color: #ffffff;
-            --gray-color: #65676b;
-            --border-color: #dddfe2;
-            --message-received: #e4e6eb;
-            --message-sent: #0084ff;
-        }
-
-        body.dark-mode {
-            --secondary-color: #18191a;
-            --dark-color: #e4e6eb;
-            --light-color: #242526;
-            --gray-color: #b0b3b8;
-            --border-color: #3e4042;
-            --message-received: #3e4042;
-            --message-sent: #0084ff;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-        }
-
-        body {
-            background-color: var(--secondary-color);
-            color: var(--dark-color);
-            height: 100vh;
-            display: flex;
-        }
-
-        /* Sidebar */
-        .sidebar {
-            width: 360px;
-            background-color: var(--light-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            transition: transform 0.3s;
-        }
-
-        /* ... (previous CSS styles remain the same) ... */
-
-        /* Call UI */
-        .call-container {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            display: none;
-        }
-
-        .call-video {
-            width: 100%;
-            max-width: 800px;
-            background-color: black;
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .call-video video {
-            width: 100%;
-        }
-
-        .local-video {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 150px;
-            border: 2px solid white;
-            border-radius: 4px;
-        }
-
-        .call-controls {
-            margin-top: 20px;
-            display: flex;
-            gap: 20px;
-        }
-
-        .call-btn {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 24px;
-        }
-
-        .call-answer {
-            background-color: #31a24c;
-        }
-
-        .call-end {
-            background-color: #ff3b30;
-        }
-
-        .call-mute {
-            background-color: var(--gray-color);
-        }
-
-        .call-video-toggle {
-            background-color: var(--gray-color);
-        }
-
-        /* Responsive */
-        @media (max-width: 900px) {
-            .sidebar {
-                width: 100%;
-                position: absolute;
-                z-index: 10;
-                transform: translateX(-100%);
-            }
-            .sidebar.active {
-                transform: translateX(0);
-            }
-            .chat-area {
-                display: none;
-            }
-            .chat-area.active {
-                display: flex;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="user-profile">
-                <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="User" id="current-user-img">
-                <span class="user-name" id="current-user-name">Loading...</span>
-            </div>
-            <div class="sidebar-icons">
-                <i class="fas fa-video" id="new-video-call"></i>
-                <i class="fas fa-edit"></i>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
-        </div>
-
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" placeholder="Search Messenger" id="search-contacts">
-            </div>
-        </div>
-
-        <div class="chats-list" id="contacts-list">
-            <!-- Contacts will be loaded here -->
-        </div>
-    </div>
-
-    <!-- Chat Area -->
-    <div class="chat-area" id="chatArea">
-        <div class="chat-header">
-            <i class="fas fa-arrow-left" id="back-button"></i>
-            <div class="chat-avatar">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Friend" id="current-contact-img">
-                <div class="online-status" id="online-status"></div>
-            </div>
-            <div class="chat-header-info">
-                <div class="chat-header-name" id="current-contact-name">Select a chat</div>
-                <div class="chat-header-status" id="current-contact-status">Offline</div>
-            </div>
-            <div class="chat-header-icons">
-                <i class="fas fa-video" id="video-call-btn"></i>
-                <i class="fas fa-phone" id="voice-call-btn"></i>
-                <i class="fas fa-search"></i>
-                <i class="fas fa-ellipsis-h"></i>
-            </div>
-        </div>
-
-        <div class="messages-container" id="messagesContainer">
-            <!-- Messages will be loaded here -->
-            <div class="welcome-message">
-                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hfJXYa1F3sL.ico" alt="Messenger">
-                <h3>Messenger</h3>
-                <p>Select a contact to start chatting</p>
-            </div>
-        </div>
-
-        <div class="message-input-container">
-            <div class="message-input-icons">
-                <i class="fas fa-plus"></i>
-                <i class="fas fa-image" id="file-upload"></i>
-                <i class="fas fa-gift"></i>
-            </div>
-            <div class="message-input">
-                <input type="text" placeholder="Type a message" id="messageInput">
-                <input type="file" id="fileInput" style="display: none;" accept="image/*, video/*">
-            </div>
-            <button class="send-button" id="sendButton">
-                <i class="fas fa-paper-plane"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Call UI -->
-    <div class="call-container" id="callContainer">
-        <div class="call-video">
-            <video id="remoteVideo" autoplay></video>
-            <video id="localVideo" class="local-video" autoplay muted></video>
-        </div>
-        <div class="call-info">
-            <h2 id="call-contact-name">Calling...</h2>
-            <p id="call-status">Connecting...</p>
-        </div>
-        <div class="call-controls">
-            <div class="call-btn call-mute" id="muteBtn">
-                <i class="fas fa-microphone"></i>
-            </div>
-            <div class="call-btn call-video-toggle" id="videoToggleBtn">
-                <i class="fas fa-video"></i>
-            </div>
-            <div class="call-btn call-end" id="endCallBtn">
-                <i class="fas fa-phone"></i>
-            </div>
-        </div>
-    </div>
-
-    <!-- Theme Switcher -->
-    <div class="theme-switcher" id="themeSwitcher">
-        <i class="fas fa-moon"></i>
-    </div>
-
-    <!-- Firebase and Sinch SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js"></script>
-    <script src="https://sdk.sinch.com/latest/js/sinch.min.js"></script>
-
-    <script>
-        // Firebase configuration
-        const firebaseConfig = {
-            apiKey: "AIzaSyB49vRPX8YaWuTP5GS3lsBDqdAaz_hJYAw",
-            authDomain: "onlineshop-849c8.firebaseapp.com",
-            databaseURL: "https://onlineshop-849c8.firebaseio.com",
-            projectId: "onlineshop-849c8",
-            storageBucket: "onlineshop-849c8.appspot.com",
-            messagingSenderId: "883512833370",
-            appId: "1:883512833370:web:a1c8412b158f8744afef63"
-        };
-
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const database = firebase.database();
-        const storage = firebase.storage();
-        const messaging = firebase.messaging();
-
-        // Sinch configuration
-        const sinchClient = new SinchClient({
-            applicationKey: 'YOUR_SINCH_APP_KEY',
-            capabilities: { calling: true, video: true },
-            supportActiveConnection: true,
-            onLogMessage: function(message) {
-                console.log(message.message);
-            },
-        });
-
-        // DOM elements
-        const sidebar = document.getElementById('sidebar');
-        const chatArea = document.getElementById('chatArea');
-        const contactsList = document.getElementById('contacts-list');
-        const messagesContainer = document.getElementById('messagesContainer');
-        const messageInput = document.getElementById('messageInput');
-        const sendButton = document.getElementById('sendButton');
-        const fileUpload = document.getElementById('file-upload');
-        const fileInput = document.getElementById('fileInput');
-        const currentUserImg = document.getElementById('current-user-img');
-        const currentUserName = document.getElementById('current-user-name');
-        const currentContactImg = document.getElementById('current-contact-img');
-        const currentContactName = document.getElementById('current-contact-name');
-        const currentContactStatus = document.getElementById('current-contact-status');
-        const onlineStatus = document.getElementById('online-status');
-        const backButton = document.getElementById('back-button');
-        const videoCallBtn = document.getElementById('video-call-btn');
-        const voiceCallBtn = document.getElementById('voice-call-btn');
-        const newVideoCall = document.getElementById('new-video-call');
-        const themeSwitcher = document.getElementById('themeSwitcher');
-        const searchContacts = document.getElementById('search-contacts');
-        const callContainer = document.getElementById('callContainer');
-        const remoteVideo = document.getElementById('remoteVideo');
-        const localVideo = document.getElementById('localVideo');
-        const callContactName = document.getElementById('call-contact-name');
-        const callStatus = document.getElementById('call-status');
-        const muteBtn = document.getElementById('muteBtn');
-        const videoToggleBtn = document.getElementById('videoToggleBtn');
-        const endCallBtn = document.getElementById('endCallBtn');
-
-        // App state
-        let currentUser = null;
-        let currentContact = null;
-        let contacts = [];
-        let messages = [];
-        let call = null;
-        let isMuted = false;
-        let isVideoOn = true;
-
-        // Initialize the app
-        function init() {
-            setupEventListeners();
-            checkAuthState();
-            requestNotificationPermission();
-        }
-
-        // Check authentication state
-        function checkAuthState() {
-            auth.onAuthStateChanged(user => {
-                if (user) {
-                    currentUser = user;
-                    setupUser(user);
-                    loadContacts();
-                } else {
-                    showAuthModal();
-                }
-            });
-        }
-
-        // Show authentication modal
-        function showAuthModal() {
-            // In a real app, you'd show a proper login modal
-            const email = prompt('Enter your email:');
-            const password = prompt('Enter your password:');
-            
-            auth.signInWithEmailAndPassword(email, password)
-                .catch(error => {
-                    alert('Login failed: ' + error.message);
-                    showAuthModal();
-                });
-        }
-
-        // Setup user profile
-        function setupUser(user) {
-            currentUserName.textContent = user.displayName || user.email;
-            
-            // In a real app, you'd load the user's profile picture
-            database.ref('users/' + user.uid).once('value').then(snapshot => {
-                const userData = snapshot.val();
-                if (userData && userData.profilepic) {
-                    currentUserImg.src = userData.profilepic;
-                }
-            });
-            
-            // Initialize Sinch client
-            sinchClient.start({ user: { userId: user.uid } })
-                .then(() => {
-                    console.log('Sinch client started');
-                    setupCallListeners();
-                })
-                .catch(error => {
-                    console.error('Error starting Sinch client:', error);
-                });
-        }
-
-        // Load contacts from Firebase
-        function loadContacts() {
-            database.ref('users').on('value', snapshot => {
-                contacts = [];
-                snapshot.forEach(childSnapshot => {
-                    if (childSnapshot.key !== currentUser.uid) {
-                        const contact = childSnapshot.val();
-                        contact.id = childSnapshot.key;
-                        contacts.push(contact);
-                    }
-                });
-                renderContacts(contacts);
-            });
-        }
-
-        // Render contacts list
-        function renderContacts(contactsToRender) {
-            contactsList.innerHTML = '';
-            
-            if (contactsToRender.length === 0) {
-                contactsList.innerHTML = '<div class="no-contacts">No contacts found</div>';
-                return;
-            }
-            
-            contactsToRender.forEach(contact => {
-                const contactItem = document.createElement('div');
-                contactItem.className = 'chat-item';
-                contactItem.innerHTML = `
-                    <div class="chat-avatar">
-                        <img src="${contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg'}" alt="${contact.name}">
-                        ${contact.online === "true" ? '<div class="online-status"></div>' : ''}
-                    </div>
-                    <div class="chat-info">
-                        <div class="chat-name">${contact.name || contact.email}</div>
-                        <div class="chat-preview">
-                            <div class="chat-preview-text">${contact.status || 'Available'}</div>
-                            <div class="chat-time">${contact.lastOnline ? formatTime(contact.lastOnline) : ''}</div>
-                        </div>
-                    </div>
-                `;
-                
-                contactItem.addEventListener('click', () => {
-                    selectContact(contact);
-                });
-                
-                contactsList.appendChild(contactItem);
-            });
-        }
-
-        // Select a contact to chat with
-        function selectContact(contact) {
-            currentContact = contact;
-            currentContactImg.src = contact.profilepic || 'https://randomuser.me/api/portraits/lego/1.jpg';
-            currentContactName.textContent = contact.name || contact.email;
-            currentContactStatus.textContent = contact.online === "true" ? 'Online' : 'Offline';
-            onlineStatus.style.display = contact.online === "true" ? 'block' : 'none';
-            
-            // Load messages
-            loadMessages(contact.id);
-            
-            // For mobile view
-            if (window.innerWidth <= 900) {
-                sidebar.classList.remove('active');
-                chatArea.classList.add('active');
-            }
-        }
-
-        // Load messages for a conversation
-        function loadMessages(contactId) {
-            messagesContainer.innerHTML = '';
-            
-            const conversationId = getConversationId(currentUser.uid, contactId);
-            database.ref('messages/' + conversationId).orderByChild('timestamp').on('value', snapshot => {
-                messages = [];
-                snapshot.forEach(childSnapshot => {
-                    const message = childSnapshot.val();
-                    message.id = childSnapshot.key;
-                    messages.push(message);
-                });
-                
-                renderMessages();
-            });
-        }
-
-        // Render messages
-        function renderMessages() {
-            messagesContainer.innerHTML = '';
-            
-            if (messages.length === 0) {
-                messagesContainer.innerHTML = '<div class="no-messages">No messages yet</div>';
-                return;
-            }
-            
-            messages.forEach(message => {
-                const isSent = message.senderId === currentUser.uid;
-                const messageElement = document.createElement('div');
-                messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
-                
-                let messageContent = message.text;
-                if (message.imageUrl) {
-                    messageContent = `<img src="${message.imageUrl}" class="message-image">`;
-                } else if (message.videoUrl) {
-                    messageContent = `
-                        <video controls class="message-video">
-                            <source src="${message.videoUrl}" type="video/mp4">
-                        </video>
-                    `;
-                }
-                
-                messageElement.innerHTML = `
-                    ${messageContent}
-                    <div class="message-time">
-                        ${formatTime(message.timestamp)}
-                        ${isSent ? 
-                            `<span class="message-status">
-                                ${message.seen ? '<i class="fas fa-check-double seen"></i>' : 
-                                 message.delivered ? '<i class="fas fa-check-double"></i>' : 
-                                 '<i class="fas fa-check"></i>'}
-                            </span>` : ''}
-                    </div>
-                `;
-                
-                messagesContainer.appendChild(messageElement);
-            });
-            
-            // Scroll to bottom
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
-
-        // Send a new message
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text && !fileInput.files[0]) return;
-            
-            const conversationId = getConversationId(currentUser.uid, currentContact.id);
-            const newMessageRef = database.ref('messages/' + conversationId).push();
-            const timestamp = Date.now();
-            
-            if (fileInput.files[0]) {
-                // Upload file
-                const file = fileInput.files[0];
-                const fileType = file.type.split('/')[0];
-                const uploadTask = storage.ref(`messages/${conversationId}/${file.name}`).put(file);
-                
-                uploadTask.on('state_changed', 
-                    null, 
-                    error => {
-                        console.error('Upload failed:', error);
-                    }, 
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-                            const messageData = {
-                                senderId: currentUser.uid,
-                                timestamp: timestamp,
-                                [fileType + 'Url']: downloadURL
-                            };
-                            
-                            newMessageRef.set(messageData)
-                                .then(() => {
-                                    updateLastMessage(conversationId, fileType === 'image' ? 'Sent an image' : 'Sent a video');
-                                    fileInput.value = '';
-                                });
-                        });
-                    }
-                );
+            if (pageData.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="9" style="text-align: center;">No records found</td></tr>';
             } else {
-                // Text message
-                const messageData = {
-                    text: text,
-                    senderId: currentUser.uid,
-                    timestamp: timestamp,
-                    delivered: false,
-                    seen: false
-                };
-                
-                newMessageRef.set(messageData)
-                    .then(() => {
-                        messageInput.value = '';
-                        updateLastMessage(conversationId, text);
-                    });
-            }
-        }
-
-        // Update last message in conversation
-        function updateLastMessage(conversationId, text) {
-            database.ref('conversations/' + conversationId).update({
-                lastMessage: text,
-                lastUpdated: Date.now()
-            });
-        }
-
-        // Setup call listeners
-        function setupCallListeners() {
-            sinchClient.on('callProgressing', call => {
-                callStatus.textContent = 'Calling...';
-                callContainer.style.display = 'flex';
-            });
-            
-            sinchClient.on('callEstablished', call => {
-                callStatus.textContent = 'Call in progress';
-                this.call = call;
-            });
-            
-            sinchClient.on('callEnded', call => {
-                callContainer.style.display = 'none';
-                remoteVideo.srcObject = null;
-                localVideo.srcObject = null;
-                this.call = null;
-            });
-            
-            sinchClient.on('incomingCall', call => {
-                callContactName.textContent = currentContact.name;
-                callStatus.textContent = 'Incoming call...';
-                callContainer.style.display = 'flex';
-                
-                // Answer button
-                const answerBtn = document.createElement('div');
-                answerBtn.className = 'call-btn call-answer';
-                answerBtn.innerHTML = '<i class="fas fa-phone"></i>';
-                answerBtn.addEventListener('click', () => {
-                    call.answer();
-                    setupCallStreams(call);
+                pageData.forEach(item => {
+                    const row = document.createElement('tr');
+                    
+                    // Helper function to safely get values
+                    const getValue = (key) => item[key] || 'N/A';
+                    
+                    row.innerHTML = `
+                        <td>${getValue('No.')}</td>
+                        <td>${getValue('Date')}</td>
+                        <td>${getValue('Code ').trim()}</td>
+                        <td>${getValue('Account Name')}</td>
+                        <td>${getValue(' Phone No. ').trim()}</td>
+                        <td>${getValue(' Location.from ').trim()}</td>
+                        <td>${getValue('Location.to')}</td>
+                        <td>${getValue('Price (Baht)')}</td>
+                        <td><button onclick="showDetails('${item['No.']}')">View</button></td>
+                    `;
+                    tableBody.appendChild(row);
                 });
-                
-                callControls.insertBefore(answerBtn, endCallBtn);
-                this.call = call;
-            });
-        }
-
-        // Setup call streams
-        function setupCallStreams(call) {
-            call.on('stream', event => {
-                remoteVideo.srcObject = event.stream;
-            });
+            }
             
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    localVideo.srcObject = stream;
-                    call.sendStream(stream);
-                });
+            updatePagination();
         }
-
-        // Start a new call
-        function startCall(isVideo) {
-            if (!currentContact) return;
+        
+        // Update pagination controls
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            document.getElementById('pageInfo').textContent = `Page ${currentPage} of ${totalPages}`;
             
-            callContactName.textContent = currentContact.name;
-            callStatus.textContent = 'Calling...';
-            callContainer.style.display = 'flex';
-            
-            const call = sinchClient.callUser(currentContact.id, isVideo);
-            setupCallStreams(call);
-            this.call = call;
+            document.getElementById('prevBtn').disabled = currentPage === 1;
+            document.getElementById('nextBtn').disabled = currentPage === totalPages || totalPages === 0;
         }
-
-        // End current call
-        function endCall() {
-            if (call) {
-                call.hangup();
+        
+        // Pagination functions
+        function prevPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
             }
         }
-
-        // Toggle mute
-        function toggleMute() {
-            if (call) {
-                isMuted = !isMuted;
-                call.toggleMute(isMuted);
-                muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+        
+        function nextPage() {
+            const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
             }
         }
-
-        // Toggle video
-        function toggleVideo() {
-            if (call) {
-                isVideoOn = !isVideoOn;
-                call.toggleVideo(isVideoOn);
-                videoToggleBtn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
-            }
+        
+        // Change rows per page
+        function changeRowsPerPage() {
+            rowsPerPage = parseInt(document.getElementById('rowsPerPage').value);
+            currentPage = 1;
+            renderTable();
         }
-
-        // Format timestamp
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // Generate conversation ID
-        function getConversationId(userId1, userId2) {
-            return [userId1, userId2].sort().join('_');
-        }
-
-        // Request notification permission
-        function requestNotificationPermission() {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                    setupPushNotifications();
-                }
-            });
-        }
-
-        // Setup push notifications
-        function setupPushNotifications() {
-            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then(currentToken => {
-                if (currentToken) {
-                    database.ref('users/' + currentUser.uid + '/pushToken').set(currentToken);
-                }
-            });
+        
+        // Search function
+        function searchTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
-            messaging.onMessage(payload => {
-                const notification = new Notification(payload.notification.title, {
-                    body: payload.notification.body,
-                    icon: payload.notification.icon
-                });
-            });
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Message sending
-            sendButton.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            
-            // File upload
-            fileUpload.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', sendMessage);
-            
-            // Calls
-            videoCallBtn.addEventListener('click', () => startCall(true));
-            voiceCallBtn.addEventListener('click', () => startCall(false));
-            newVideoCall.addEventListener('click', () => {
-                // In a real app, you'd show a contact picker
-                alert('Select a contact to call first');
-            });
-            
-            // Call controls
-            endCallBtn.addEventListener('click', endCall);
-            muteBtn.addEventListener('click', toggleMute);
-  ollTop = messagesContainer.scrollHeight;
-        }
-
-             // Send a new message
-        function sendMessage() {
-            const text = messageInput.value.trim();
-            if (!text && !fileInput.files[0]) return;
-            
-            const conversationId = getConversationId(currentUser.uid, currentContact.id);
-            const newMessageRef = database.ref('messages/' + conversationId).push();
-            const timestamp = Date.now();
-            
-            if (fileInput.files[0]) {
-                // Upload file
-                const file = fileInput.files[0];
-                const fileType = file.type.split('/')[0];
-                const uploadTask = storage.ref(`messages/${conversationId}/${file.name}`).put(file);
-                
-                uploadTask.on('state_changed', 
-                    null, 
-                    error => {
-                        console.error('Upload failed:', error);
-                    }, 
-                    () => {
-                        uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-                            const messageData = {
-                                senderId: currentUser.uid,
-                                timestamp: timestamp,
-                                [fileType + 'Url']: downloadURL
-                            };
-                            
-                            newMessageRef.set(messageData)
-                                .then(() => {
-                                    updateLastMessage(conversationId, fileType === 'image' ? 'Sent an image' : 'Sent a video');
-                                    fileInput.value = '';
-                                });
-                        });
-                    }
-                );
+            if (searchTerm === '') {
+                filteredData = [...allData];
             } else {
-                // Text message
-                const messageData = {
-                    text: text,
-                    senderId: currentUser.uid,
-                    timestamp: timestamp,
-                    delivered: false,
-                    seen: false
-                };
-                
-                newMessageRef.set(messageData)
-                    .then(() => {
-                        messageInput.value = '';
-                        updateLastMessage(conversationId, text);
-                    });
-            }
-        }
-
-        // Update last message in conversation
-        function updateLastMessage(conversationId, text) {
-            database.ref('conversations/' + conversationId).update({
-                lastMessage: text,
-                lastUpdated: Date.now()
-            });
-        }
-
-        // Setup call listeners
-        function setupCallListeners() {
-            sinchClient.on('callProgressing', call => {
-                callStatus.textContent = 'Calling...';
-                callContainer.style.display = 'flex';
-            });
-            
-            sinchClient.on('callEstablished', call => {
-                callStatus.textContent = 'Call in progress';
-                this.call = call;
-            });
-            
-            sinchClient.on('callEnded', call => {
-                callContainer.style.display = 'none';
-                remoteVideo.srcObject = null;
-                localVideo.srcObject = null;
-                this.call = null;
-            });
-            
-            sinchClient.on('incomingCall', call => {
-                callContactName.textContent = currentContact.name;
-                callStatus.textContent = 'Incoming call...';
-                callContainer.style.display = 'flex';
-                
-                // Answer button
-                const answerBtn = document.createElement('div');
-                answerBtn.className = 'call-btn call-answer';
-                answerBtn.innerHTML = '<i class="fas fa-phone"></i>';
-                answerBtn.addEventListener('click', () => {
-                    call.answer();
-                    setupCallStreams(call);
+                filteredData = allData.filter(item => {
+                    return (
+                        (item['Account Name'] && item['Account Name'].toLowerCase().includes(searchTerm)) ||
+                        (item[' Phone No. '] && item[' Phone No. '].toLowerCase().includes(searchTerm)) ||
+                        (item[' Item '] && item[' Item '].toLowerCase().includes(searchTerm))
+                    );
                 });
-                
-                callControls.insertBefore(answerBtn, endCallBtn);
-                this.call = call;
-            });
-        }
-
-        // Setup call streams
-        function setupCallStreams(call) {
-            call.on('stream', event => {
-                remoteVideo.srcObject = event.stream;
-            });
-            
-            navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-                .then(stream => {
-                    localVideo.srcObject = stream;
-                    call.sendStream(stream);
-                });
-        }
-
-        // Start a new call
-        function startCall(isVideo) {
-            if (!currentContact) return;
-            
-            callContactName.textContent = currentContact.name;
-            callStatus.textContent = 'Calling...';
-            callContainer.style.display = 'flex';
-            
-            const call = sinchClient.callUser(currentContact.id, isVideo);
-            setupCallStreams(call);
-            this.call = call;
-        }
-
-        // End current call
-        function endCall() {
-            if (call) {
-                call.hangup();
             }
+            
+            currentPage = 1;
+            renderTable();
         }
-
-        // Toggle mute
-        function toggleMute() {
-            if (call) {
-                isMuted = !isMuted;
-                call.toggleMute(isMuted);
-                muteBtn.innerHTML = isMuted ? '<i class="fas fa-microphone-slash"></i>' : '<i class="fas fa-microphone"></i>';
+        
+        // Show details modal
+        function showDetails(no) {
+            const item = allData.find(i => i['No.'] === no);
+            if (!item) return;
+            
+            const modal = document.getElementById('detailModal');
+            document.getElementById('modalTitle').textContent = `Details for Record #${no}`;
+            
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = '';
+            
+            // Helper function to safely get values
+            const getValue = (key) => item[key] || 'N/A';
+            
+            // Create detail rows
+            const fields = [
+                {label: 'Date', key: 'Date'},
+                {label: 'Code', key: 'Code '},
+                {label: 'Account Name', key: 'Account Name'},
+                {label: 'Phone No.', key: ' Phone No. '},
+                {label: 'From Location', key: ' Location.from '},
+                {label: 'To Location', key: 'Location.to'},
+                {label: 'Unit', key: ' Unit '},
+                {label: 'Item', key: ' Item '},
+                {label: 'Receiver', key: " Receiver's Name "},
+                {label: 'Price (Baht)', key: 'Price (Baht)'},
+                {label: 'Remark', key: 'Remark'}
+            ];
+            
+            fields.forEach(field => {
+                const row = document.createElement('div');
+                row.className = 'detail-row';
+                row.innerHTML = `
+                    <div class="detail-label">${field.label}:</div>
+                    <div class="detail-value">${getValue(field.key).toString().trim()}</div>
+                `;
+                modalContent.appendChild(row);
+            });
+            
+            // Show image if available
+            if (item['url']) {
+                const imgRow = document.createElement('div');
+                imgRow.className = 'detail-row';
+                imgRow.innerHTML = `
+                    <div class="detail-label">Image:</div>
+                    <div class="detail-value">
+                        <img src="${item['url']}" alt="Shipping item" style="max-width: 100%; max-height: 200px;">
+                    </div>
+                `;
+                modalContent.appendChild(imgRow);
             }
+            
+            modal.style.display = 'block';
         }
-
-        // Toggle video
-        function toggleVideo() {
-            if (call) {
-                isVideoOn = !isVideoOn;
-                call.toggleVideo(isVideoOn);
-                videoToggleBtn.innerHTML = isVideoOn ? '<i class="fas fa-video"></i>' : '<i class="fas fa-video-slash"></i>';
+        
+        // Close modal
+        document.querySelector('.close').addEventListener('click', function() {
+            document.getElementById('detailModal').style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('detailModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
             }
-        }
-
-        // Format timestamp
-        function formatTime(timestamp) {
-            const date = new Date(timestamp);
-            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }
-
-        // Generate conversation ID
-        function getConversationId(userId1, userId2) {
-            return [userId1, userId2].sort().join('_');
-        }
-
-        // Request notification permission
-        function requestNotificationPermission() {
-            Notification.requestPermission().then(permission => {
-                if (permission === 'granted') {
-                    console.log('Notification permission granted');
-                    setupPushNotifications();
-                }
-            });
-        }
-
-        // Setup push notifications
-        function setupPushNotifications() {
-            messaging.getToken({ vapidKey: 'YOUR_VAPID_KEY' }).then(currentToken => {
-                if (currentToken) {
-                    database.ref('users/' + currentUser.uid + '/pushToken').set(currentToken);
-                }
-            });
-            
-            messaging.onMessage(payload => {
-                const notification = new Notification(payload.notification.title, {
-                    body: payload.notification.body,
-                    icon: payload.notification.icon
-                });
-            });
-        }
-
-        // Setup event listeners
-        function setupEventListeners() {
-            // Message sending
-            sendButton.addEventListener('click', sendMessage);
-            messageInput.addEventListener('keypress', e => {
-                if (e.key === 'Enter') sendMessage();
-            });
-            
-            // File upload
-            fileUpload.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', sendMessage);
-            
-            // Calls
-            videoCallBtn.addEventListener('click', () => startCall(true));
-            voiceCallBtn.addEventListener('click', () => startCall(false));
-            newVideoCall.addEventListener('click', () => {
-                // In a real app, you'd show a contact picker
-                alert('Select a contact to call first');
-            });
-            
-            // Call controls
-            endCallBtn.addEventListener('click', endCall);
-            muteBtn.addEventListener('click', toggleMute);
-            videoToggleBtn.addEventListener('click', toggleVideo);
-            
-            // Theme switcher
-            themeSwitcher.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-                const icon = themeSwitcher.querySelector('i');
-                if (document.body.classList.contains('dark-mode')) {
-                    icon.classList.remove('fa-moon');
-                    icon.classList.add('fa-sun');
-                } else {
-                    icon.classList.remove('fa-sun');
-                    icon.classList.add('fa-moon');
-                }
-            });
-            
-            // Search
-            searchContacts.addEventListener('input', () => {
-                const searchTerm = searchContacts.value.toLowerCase();
-                const filteredContacts = contacts.filter(contact => 
-                    (contact.name && contact.name.toLowerCase().includes(searchTerm)) ||
-                    (contact.email && contact.email.toLowerCase().includes(searchTerm))
-                );
-                renderContacts(filteredContacts);
-            });
-            
-            // Back button for mobile
-            backButton.addEventListener('click', () => {
-                sidebar.classList.add('active');
-                chatArea.classList.remove('active');
-            });
-            
-            // Responsive behavior
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 900) {
-                    sidebar.classList.add('active');
-                    chatArea.classList.add('active');
-                }
-            });
-        }
-
-        // Initialize the app
-        init();
+        });
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', fetchData);
     </script>
 </body>
 </html>
