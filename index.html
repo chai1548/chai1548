@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Phone Records</title>
+    <title>Shipping Records - Column Headers</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,7 +13,6 @@
         }
         .container {
             max-width: 100%;
-            overflow-x: auto;
             background-color: white;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
@@ -24,24 +23,22 @@
             text-align: center;
             margin-bottom: 20px;
         }
-        table {
+        .header-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-        th, td {
+        .header-table th, .header-table td {
             padding: 12px 15px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        th {
+        .header-table th {
             background-color: #4CAF50;
             color: white;
-            position: sticky;
-            top: 0;
         }
-        tr:hover {
-            background-color: #f5f5f5;
+        .header-table tr:nth-child(even) {
+            background-color: #f2f2f2;
         }
         .loading {
             text-align: center;
@@ -52,36 +49,31 @@
             text-align: center;
             padding: 20px;
         }
-        .true {
-            color: green;
-            font-weight: bold;
-        }
-        .false {
-            color: red;
-            font-weight: bold;
-        }
-        .phone-numbers {
-            white-space: pre-line;
+        .highlight {
+            background-color: #fffacd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Shipping Phone Records</h1>
+        <h1>Shipping Records Column Headers</h1>
         <div id="loading" class="loading">Loading data...</div>
         <div id="error" class="error" style="display: none;"></div>
-        <table id="dataTable" style="display: none;">
-            <thead>
-                <tr>
-                    <th>No.</th>
-                    <th>Phone Numbers</th>
-                    <th>Checked</th>
-                    <th>Remark</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-        </table>
+        <div id="headerContainer" style="display: none;">
+            <h3>Column Headers from Row 3:</h3>
+            <table class="header-table">
+                <thead>
+                    <tr>
+                        <th>No.</th>
+                        <th>Header Name</th>
+                        <th>Example Value</th>
+                    </tr>
+                </thead>
+                <tbody id="headersTable">
+                    <!-- Headers will be inserted here -->
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <script>
@@ -89,8 +81,35 @@
             const apiUrl = 'https://opensheet.elk.sh/19SPIZrH3EdkPLv3zYHtZVvmnhU-NcHCYUiIpDK3ON4s/10';
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error');
-            const tableElement = document.getElementById('dataTable');
-            const tableBody = document.getElementById('tableBody');
+            const headerContainer = document.getElementById('headerContainer');
+            const headersTable = document.getElementById('headersTable');
+
+            // These are the headers you specified from row 3
+            const specifiedHeaders = [
+                "No.",
+                "Date",
+                "Code ",
+                "Account Name",
+                "Phone No.",
+                "Location.from",
+                "Unit",
+                "Item",
+                "Receiver's Name",
+                "Phone No.",
+                "Location.to",
+                "KG",
+                "Price (Baht)",
+                "TOTAL",
+                "Remark",
+                "Checked",
+                "Remark",
+                "Checked",
+                "Remark",
+                "Checked",
+                "Remark",
+                "Checked",
+                "Remark"
+            ];
 
             fetch(apiUrl)
                 .then(response => {
@@ -102,39 +121,34 @@
                 .then(data => {
                     loadingElement.style.display = 'none';
                     
-                    if (data.length === 0) {
-                        errorElement.textContent = 'No data available';
+                    if (data.length < 4) {
+                        errorElement.textContent = 'Not enough rows in data';
                         errorElement.style.display = 'block';
                         return;
                     }
 
-                    // Process and display the data
-                    data.forEach((item, index) => {
+                    // Display each specified header with an example value from row 4
+                    specifiedHeaders.forEach((header, index) => {
                         const row = document.createElement('tr');
                         
-                        // Get phone numbers (from "Ko Sai ထိုင်းကုန်အထွက်စာရင်း" field)
-                        const phoneNumbers = item["Ko Sai ထိုင်းကုန်အထွက်စာရင်း"] || '';
+                        // Get example value from row 4 (index 3)
+                        let exampleValue = '';
+                        if (data[3][header] !== undefined) {
+                            exampleValue = data[3][header];
+                        }
                         
-                        // Get Checked status (from "Date - " field)
-                        const checkedStatus = item["Date - "] || '';
+                        // Highlight the Phone No. and Checked columns
+                        const isHighlight = header === "Phone No." || header === "Checked";
                         
-                        // Get Remark (from "2-Jan-2025" field)
-                        const remark = item["2-Jan-2025"] || '';
-                        
-                        // Get Status (from "undefined" field)
-                        const status = item["undefined"] || '';
-
                         row.innerHTML = `
                             <td>${index + 1}</td>
-                            <td class="phone-numbers">${formatPhoneNumbers(phoneNumbers)}</td>
-                            <td>${checkedStatus}</td>
-                            <td>${remark}</td>
-                            <td class="${status.toLowerCase()}">${status}</td>
+                            <td class="${isHighlight ? 'highlight' : ''}">${header}</td>
+                            <td>${exampleValue || 'N/A'}</td>
                         `;
-                        tableBody.appendChild(row);
+                        headersTable.appendChild(row);
                     });
 
-                    tableElement.style.display = 'table';
+                    headerContainer.style.display = 'block';
                 })
                 .catch(error => {
                     loadingElement.style.display = 'none';
@@ -142,16 +156,6 @@
                     errorElement.style.display = 'block';
                     console.error('Error:', error);
                 });
-                
-            // Helper function to format phone numbers
-            function formatPhoneNumbers(numbers) {
-                if (!numbers) return 'N/A';
-                
-                // Replace // with line breaks for better readability
-                return numbers.replace(/\s*\/\/\s*/g, '\n')
-                              .replace(/\n+/g, '\n')
-                              .trim();
-            }
         });
     </script>
 </body>
