@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shipping Records</title>
+    <title>Shipping Phone Records</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,6 +18,11 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             padding: 20px;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
         }
         table {
             width: 100%;
@@ -47,36 +52,32 @@
             text-align: center;
             padding: 20px;
         }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
+        .true {
+            color: green;
+            font-weight: bold;
         }
-        button:hover {
-            background-color: #45a049;
+        .false {
+            color: red;
+            font-weight: bold;
+        }
+        .phone-numbers {
+            white-space: pre-line;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Shipping Records</h1>
+        <h1>Shipping Phone Records</h1>
         <div id="loading" class="loading">Loading data...</div>
         <div id="error" class="error" style="display: none;"></div>
         <table id="dataTable" style="display: none;">
             <thead>
                 <tr>
                     <th>No.</th>
-                    <th>Date</th>
-                    <th>Code</th>
-                    <th>Account Name</th>
-                    <th>Phone</th>
-                    <th>From</th>
-                    <th>To</th>
-                    <th>Price (Baht)</th>
-                    <th>Action</th>
+                    <th>Phone Numbers</th>
+                    <th>Checked</th>
+                    <th>Remark</th>
+                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="tableBody"></tbody>
@@ -108,25 +109,27 @@
                     }
 
                     // Process and display the data
-                    data.forEach(item => {
+                    data.forEach((item, index) => {
                         const row = document.createElement('tr');
                         
-                        // Helper function to safely get values
-                        const getValue = (key) => {
-                            const value = item[key];
-                            return (value !== undefined && value !== null && value !== '') ? value : 'N/A';
-                        };
+                        // Get phone numbers (from "Ko Sai ထိုင်းကုန်အထွက်စာရင်း" field)
+                        const phoneNumbers = item["Ko Sai ထိုင်းကုန်အထွက်စာရင်း"] || '';
+                        
+                        // Get Checked status (from "Date - " field)
+                        const checkedStatus = item["Date - "] || '';
+                        
+                        // Get Remark (from "2-Jan-2025" field)
+                        const remark = item["2-Jan-2025"] || '';
+                        
+                        // Get Status (from "undefined" field)
+                        const status = item["undefined"] || '';
 
                         row.innerHTML = `
-                            <td>${getValue('No.')}</td>
-                            <td>${getValue('Date')}</td>
-                            <td>${getValue('Code ').trim()}</td>
-                            <td>${getValue('Account Name')}</td>
-                            <td>${getValue(' Phone No. ').trim()}</td>
-                            <td>${getValue(' Location.from ').trim()}</td>
-                            <td>${getValue('Location.to')}</td>
-                            <td>${getValue('Price (Baht)')}</td>
-                            <td><button onclick="showDetails(${getValue('No.')})">View</button></td>
+                            <td>${index + 1}</td>
+                            <td class="phone-numbers">${formatPhoneNumbers(phoneNumbers)}</td>
+                            <td>${checkedStatus}</td>
+                            <td>${remark}</td>
+                            <td class="${status.toLowerCase()}">${status}</td>
                         `;
                         tableBody.appendChild(row);
                     });
@@ -139,12 +142,17 @@
                     errorElement.style.display = 'block';
                     console.error('Error:', error);
                 });
+                
+            // Helper function to format phone numbers
+            function formatPhoneNumbers(numbers) {
+                if (!numbers) return 'N/A';
+                
+                // Replace // with line breaks for better readability
+                return numbers.replace(/\s*\/\/\s*/g, '\n')
+                              .replace(/\n+/g, '\n')
+                              .trim();
+            }
         });
-
-        function showDetails(no) {
-            alert('Showing details for record #' + no);
-            // You can implement a modal or another page to show full details
-        }
     </script>
 </body>
 </html>
