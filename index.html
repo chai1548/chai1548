@@ -1,429 +1,117 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ဒေတာကြည့်ရှုစက်</title>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Google Sheets Data</title>
     <style>
-        :root {
-            --primary-color: #4361ee;
-            --secondary-color: #3f37c9;
-            --accent-color: #4895ef;
-            --light-color: #f8f9fa;
-            --dark-color: #212529;
-            --success-color: #4cc9f0;
-            --warning-color: #f72585;
-        }
-        
         body {
-            font-family: 'Noto Sans Myanmar', Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 20px auto;
+            font-family: Arial, sans-serif;
             padding: 20px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-        }
-        
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .header h1 {
-            color: var(--primary-color);
             margin: 0;
-            font-size: 28px;
-            font-weight: 700;
         }
-        
-        .header p {
-            color: #666;
-            margin-top: 8px;
-            font-size: 16px;
-        }
-        
-        .search-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-        
-        .search-box {
-            flex: 1;
-            min-width: 250px;
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px 20px 12px 45px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: all 0.3s;
-            background-color: #f8f9fa;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
-            background-color: white;
-        }
-        
-        .search-box i {
-            position: absolute;
-            left: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #999;
-        }
-        
-        .stats-card {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            color: white;
-            padding: 15px;
-            border-radius: 8px;
-            min-width: 200px;
-            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.15);
-        }
-        
-        .stats-card h3 {
-            margin: 0 0 5px 0;
-            font-size: 14px;
-            font-weight: 500;
-            opacity: 0.9;
-        }
-        
-        .stats-card p {
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-        }
-        
+
         .table-container {
             overflow-x: auto;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-            margin-top: 20px;
+            width: 100%;
         }
-        
+
         table {
             width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
+            border-collapse: collapse;
+            table-layout: auto;
             min-width: 800px;
         }
-        
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        
-        th {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px;
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
             text-align: left;
-            font-weight: 600;
-            position: relative;
+            white-space: normal;
+            word-break: break-word;
         }
-        
-        th:not(:last-child):after {
-            content: "";
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            height: 60%;
-            width: 1px;
-            background-color: rgba(255, 255, 255, 0.2);
+
+        th {
+            background-color: #f4f4f4;
         }
-        
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            background-color: white;
-            transition: background-color 0.2s;
+
+        tr:hover {
+            background-color: #f1f1f1;
         }
-        
-        tr:hover td {
-            background-color: #f8fafd;
+
+        .search-container {
+            margin-bottom: 20px;
         }
-        
-        tr:last-child td {
-            border-bottom: none;
-        }
-        
-        .no-results {
-            text-align: center;
-            padding: 40px;
-            color: #666;
+
+        input[type="text"] {
+            padding: 8px;
+            width: 100%;
+            max-width: 300px;
             font-size: 16px;
-        }
-        
-        .no-results i {
-            font-size: 40px;
-            color: #ddd;
-            margin-bottom: 15px;
-            display: block;
-        }
-        
-        .loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-        }
-        
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 4px solid rgba(67, 97, 238, 0.2);
-            border-top: 4px solid var(--primary-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 15px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @media (max-width: 768px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .search-container {
-                flex-direction: column;
-            }
-            
-            .search-box {
-                min-width: 100%;
-            }
-            
-            .stats-card {
-                min-width: 100%;
-            }
-            
-            th, td {
-                padding: 10px 12px;
-                font-size: 14px;
-            }
-        }
-        
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            height: 8px;
-            width: 8px;
-        }
-        
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 4px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: #aaa;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>ဒေတာကြည့်ရှုစက်</h1>
-            <p>သင့်ရဲ့ spreadsheet ဒေတာများကို လှပစွာကြည့်ရှုနိုင်ပါသည်</p>
-        </div>
-        
-        <div class="search-container">
-            <div class="search-box">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="စာသားရိုက်ထည့်ပြီး ရှာဖွေပါ..." onkeyup="searchTable()">
-            </div>
-            
-            <div class="stats-card">
-                <h3>စုစုပေါင်းမှတ်တမ်း</h3>
-                <p id="totalRecords">0</p>
-            </div>
-            
-            <div class="stats-card">
-                <h3>ပြသထားသောမှတ်တမ်း</h3>
-                <p id="filteredRecords">0</p>
-            </div>
-        </div>
-        
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            <p>ဒေတာများတင်နေပါသည်...</p>
-        </div>
-        
-        <div id="error" class="no-results" style="display: none;">
-            <i class="fas fa-exclamation-triangle"></i>
-            <p id="errorMessage"></p>
-        </div>
-        
-        <div class="table-container">
-            <table id="dataTable" style="display: none;">
-                <thead id="tableHeader">
-                    <!-- Headers will be inserted here -->
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Data will be inserted here -->
-                </tbody>
-            </table>
-        </div>
-        
-        <div id="noResults" class="no-results" style="display: none;">
-            <i class="far fa-folder-open"></i>
-            <p>ရှာဖွေတွေ့ရှိမှုမရှိပါ</p>
-        </div>
+    <div class="search-container">
+        <label for="search">Search:</label>
+        <input type="text" id="search" placeholder="Type to search...">
     </div>
-
+    <div class="table-container">
+        <table id="data-table"></table>
+    </div>
     <script>
-        let allData = [];
-        let filteredData = [];
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            const apiUrl = 'https://opensheet.elk.sh/1vEaxb4aPpov-fBPWqunms9hGy6NF2PcLbhcKOg3EWZc/1';
-            const loadingElement = document.getElementById('loading');
-            const errorElement = document.getElementById('error');
-            const errorMessageElement = document.getElementById('errorMessage');
-            const tableElement = document.getElementById('dataTable');
-            const tableHeader = document.getElementById('tableHeader');
-            const tableBody = document.getElementById('tableBody');
-            const noResultsElement = document.getElementById('noResults');
-            const totalRecordsElement = document.getElementById('totalRecords');
-            const filteredRecordsElement = document.getElementById('filteredRecords');
+        const sheetId = '1i5WXXJkARrd1weMTbtttAAubI0N55JfCwTGMejQbSRw';
+        const sheetName = 'Sheet1';
+        const apiKey = 'AIzaSyAtH-qxIXnW99wTw3GbnvATMMqX51v0Bzs';
+        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
 
-            fetch(apiUrl)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('ဒေတာများတင်ယူရာတွင် အမှားတစ်ခုဖြစ်နေပါသည်');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    loadingElement.style.display = 'none';
-                    
-                    if (data.length === 0) {
-                        showError('ဒေတာများမတွေ့ရှိပါ');
-                        return;
-                    }
+        const table = document.getElementById('data-table');
+        const searchInput = document.getElementById('search');
 
-                    allData = data;
-                    filteredData = [...allData];
-                    
-                    // Create table headers from first row keys
-                    const firstItem = data[0];
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                const rows = data.values;
+                if (rows.length > 0) {
+                    const thead = document.createElement('thead');
                     const headerRow = document.createElement('tr');
-                    
-                    for (const key in firstItem) {
-                        if (firstItem.hasOwnProperty(key)) {
-                            const th = document.createElement('th');
-                            th.textContent = key;
-                            headerRow.appendChild(th);
-                        }
+                    rows[0].forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    const tbody = document.createElement('tbody');
+                    rows.slice(1).forEach(row => {
+                        const tr = document.createElement('tr');
+                        row.forEach(cell => {
+                            const td = document.createElement('td');
+                            td.textContent = cell;
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                }
+            })
+            .catch(error => console.error('Error loading data:', error));
+
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const rows = table.getElementsByTagName('tr');
+            for (let i = 1; i < rows.length; i++) {
+                const cells = rows[i].getElementsByTagName('td');
+                let match = false;
+                for (let j = 0; j < cells.length; j++) {
+                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
+                        match = true;
+                        break;
                     }
-                    
-                    tableHeader.appendChild(headerRow);
-                    
-                    // Display all data initially
-                    renderTable();
-                    
-                    tableElement.style.display = 'table';
-                    updateStats();
-                })
-                .catch(error => {
-                    showError(error.message);
-                    console.error('Error:', error);
-                });
-                
-            function showError(message) {
-                loadingElement.style.display = 'none';
-                errorMessageElement.textContent = message;
-                errorElement.style.display = 'flex';
+                }
+                rows[i].style.display = match ? '' : 'none';
             }
         });
-        
-        function renderTable() {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-            
-            if (filteredData.length === 0) {
-                document.getElementById('noResults').style.display = 'flex';
-                document.getElementById('dataTable').style.display = 'none';
-            } else {
-                document.getElementById('noResults').style.display = 'none';
-                document.getElementById('dataTable').style.display = 'table';
-                
-                filteredData.forEach(item => {
-                    const row = document.createElement('tr');
-                    
-                    for (const key in item) {
-                        if (item.hasOwnProperty(key)) {
-                            const td = document.createElement('td');
-                            td.textContent = item[key] || '-';
-                            row.appendChild(td);
-                        }
-                    }
-                    
-                    tableBody.appendChild(row);
-                });
-            }
-            
-            updateStats();
-        }
-        
-        function searchTable() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            if (searchTerm === '') {
-                filteredData = [...allData];
-            } else {
-                filteredData = allData.filter(item => {
-                    // Search across all fields of each item
-                    for (const key in item) {
-                        if (item.hasOwnProperty(key)) {
-                            const value = String(item[key]).toLowerCase();
-                            if (value.includes(searchTerm)) {
-                                return true;
-                            }
-                        }
-                    }
-                    return false;
-                });
-            }
-            
-            renderTable();
-        }
-        
-        function updateStats() {
-            document.getElementById('totalRecords').textContent = allData.length;
-            document.getElementById('filteredRecords').textContent = filteredData.length;
-        }
     </script>
 </body>
 </html>
