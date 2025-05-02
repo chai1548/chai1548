@@ -10,104 +10,370 @@
             margin: 0;
         }
 
-        .table-container {
-            overflow-x: auto;
-            width: 100%;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shipping Rate Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
         }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: auto;
-            min-width: 800px;
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
         }
-
-        th, td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-            white-space: normal;
-            word-break: break-word;
+        
+        h1, h2 {
+            color: #333;
+            text-align: center;
         }
-
-        th {
-            background-color: #f4f4f4;
-        }
-
-        tr:hover {
-            background-color: #f1f1f1;
-        }
-
-        .search-container {
+        
+        .card {
+            background: linear-gradient(to right, #E3EBFA, #E3EBFA);
+            border-radius: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             margin-bottom: 20px;
+            padding: 15px;
+            transition: all 0.3s;
         }
-
-        input[type="text"] {
-            padding: 8px;
+        
+        .card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .card-header {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .card-content {
+            display: flex;
+            justify-content: space-between;
+        }
+        
+        .rate-item {
+            margin-bottom: 8px;
+        }
+        
+        .filter-section {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .filter-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        select, input {
             width: 100%;
-            max-width: 300px;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .results-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        
+        .highlight {
+            background-color: #A8C8FB;
+            font-weight: bold;
+        }
+        
+        .tab-container {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid #A8C8FB;
+            font-weight: bold;
+        }
+        
+        .admin-panel {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: 20px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
             font-size: 16px;
+        }
+        
+        button.delete {
+            background-color: #f44336;
+        }
+        
+        @media (max-width: 768px) {
+            .filter-row {
+                flex-direction: column;
+            }
+            
+            .results-container {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="search-container">
-        <label for="search">Search:</label>
-        <input type="text" id="search" placeholder="Type to search...">
+    <div class="container">
+        <h1>Shipping Rate Calculator</h1>
+        
+        <div class="tab-container">
+            <div class="tab active" onclick="showUserPanel()">User View</div>
+            <div class="tab" onclick="showAdminPanel()">Admin Panel</div>
+        </div>
+        
+        <div id="user-panel">
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="route-select">Route:</label>
+                        <select id="route-select" onchange="filterRates()">
+                            <option value="YGN-BKK">Yangon to Bangkok</option>
+                            <option value="MWD-BKK">Myawaddy to Bangkok</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="type-select">Type:</label>
+                        <select id="type-select" onchange="filterRates()">
+                            <option value="all">All Types</option>
+                            <option value="Food">Food</option>
+                            <option value="Cosmetic">Cosmetic</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="weight-search">Search by Weight:</label>
+                        <input type="text" id="weight-search" placeholder="Enter weight..." oninput="filterRates()">
+                    </div>
+                </div>
+            </div>
+            
+            <div id="results-container" class="results-container">
+                <!-- Rates will be loaded here -->
+            </div>
+        </div>
+        
+        <div id="admin-panel" class="admin-panel hidden">
+            <h2>Admin Panel</h2>
+            <div class="filter-section">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="admin-route">Route:</label>
+                        <select id="admin-route">
+                            <option value="YGN-BKK">Yangon to Bangkok</option>
+                            <option value="MWD-BKK">Myawaddy to Bangkok</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="admin-type">Type:</label>
+                        <select id="admin-type">
+                            <option value="Food">Food</option>
+                            <option value="Cosmetic">Cosmetic</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="admin-weight">Weight:</label>
+                        <input type="text" id="admin-weight" placeholder="e.g., 1 or 30-40">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="admin-bkk">BKK Rate:</label>
+                        <input type="text" id="admin-bkk" placeholder="BKK rate">
+                    </div>
+                </div>
+                
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="admin-other">Other City Rate:</label>
+                        <input type="text" id="admin-other" placeholder="Other city rate">
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label for="admin-remote">Remote Area Rate:</label>
+                        <input type="text" id="admin-remote" placeholder="Remote area rate">
+                    </div>
+                </div>
+                
+                <button onclick="addRate()">Add Rate</button>
+            </div>
+            
+            <div id="admin-results" class="results-container" style="margin-top: 20px;">
+                <!-- Admin rates will be loaded here -->
+            </div>
+        </div>
     </div>
-    <div class="table-container">
-        <table id="data-table"></table>
-    </div>
+
     <script>
-        const sheetId = '1i5WXXJkARrd1weMTbtttAAubI0N55JfCwTGMejQbSRw';
-        const sheetName = 'Sheet1';
-        const apiKey = 'AIzaSyAtH-qxIXnW99wTw3GbnvATMMqX51v0Bzs';
-        const url = `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${sheetName}?key=${apiKey}`;
-
-        const table = document.getElementById('data-table');
-        const searchInput = document.getElementById('search');
-
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                const rows = data.values;
-                if (rows.length > 0) {
-                    const thead = document.createElement('thead');
-                    const headerRow = document.createElement('tr');
-                    rows[0].forEach(header => {
-                        const th = document.createElement('th');
-                        th.textContent = header;
-                        headerRow.appendChild(th);
-                    });
-                    thead.appendChild(headerRow);
-                    table.appendChild(thead);
-
-                    const tbody = document.createElement('tbody');
-                    rows.slice(1).forEach(row => {
-                        const tr = document.createElement('tr');
-                        row.forEach(cell => {
-                            const td = document.createElement('td');
-                            td.textContent = cell;
-                            tr.appendChild(td);
-                        });
-                        tbody.appendChild(tr);
-                    });
-                    table.appendChild(tbody);
-                }
-            })
-            .catch(error => console.error('Error loading data:', error));
-
-        searchInput.addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
-            const rows = table.getElementsByTagName('tr');
-            for (let i = 1; i < rows.length; i++) {
-                const cells = rows[i].getElementsByTagName('td');
-                let match = false;
-                for (let j = 0; j < cells.length; j++) {
-                    if (cells[j].textContent.toLowerCase().includes(searchTerm)) {
-                        match = true;
-                        break;
-                    }
+        // Shipping rates data - includes all your provided data
+        const shippingRates = {
+            "YGN-BKK": {
+                "Food": [
+                    {"Kg": "1", "BKK": "75", "OtherCity": "85", "RemoteArea": "90", "type": "Food"},
+                    {"Kg": "2", "BKK": "140", "OtherCity": "160", "RemoteArea": "170", "type": "Food"},
+                    {"Kg": "3", "BKK": "210", "OtherCity": "240", "RemoteArea": "255", "type": "Food"},
+                    {"Kg": "4", "BKK": "280", "OtherCity": "320", "RemoteArea": "340", "type": "Food"},
+                    {"Kg": "5", "BKK": "350", "OtherCity": "400", "RemoteArea": "425", "type": "Food"},
+                    {"Kg": "6", "BKK": "420", "OtherCity": "480", "RemoteArea": "510", "type": "Food"},
+                    {"Kg": "7", "BKK": "490", "OtherCity": "560", "RemoteArea": "595", "type": "Food"},
+                    {"Kg": "8", "BKK": "560", "OtherCity": "640", "RemoteArea": "680", "type": "Food"},
+                    {"Kg": "9", "BKK": "630", "OtherCity": "720", "RemoteArea": "765", "type": "Food"},
+                    {"Kg": "10", "BKK": "700", "OtherCity": "800", "RemoteArea": "850", "type": "Food"},
+                    {"Kg": "11", "BKK": "770", "OtherCity": "880", "RemoteArea": "935", "type": "Food"},
+                    {"Kg": "12", "BKK": "840", "OtherCity": "960", "RemoteArea": "1020", "type": "Food"},
+                    {"Kg": "13", "BKK": "910", "OtherCity": "1040", "RemoteArea": "1105", "type": "Food"},
+                    {"Kg": "14", "BKK": "952", "OtherCity": "1092", "RemoteArea": "1162", "type": "Food"},
+                    {"Kg": "15", "BKK": "1020", "OtherCity": "1170", "RemoteArea": "1245", "type": "Food"},
+                    {"Kg": "16", "BKK": "1072", "OtherCity": "1232", "RemoteArea": "1312", "type": "Food"},
+                    {"Kg": "17", "BKK": "1139", "OtherCity": "1309", "RemoteArea": "1394", "type": "Food"},
+                    {"Kg": "18", "BKK": "1170", "OtherCity": "1350", "RemoteArea": "1440", "type": "Food"},
+                    {"Kg": "19", "BKK": "1216", "OtherCity": "1406", "RemoteArea": "1501", "type": "Food"},
+                    {"Kg": "20", "BKK": "1240", "OtherCity": "1440", "RemoteArea": "1540", "type": "Food"},
+                    {"Kg": "21", "BKK": "1260", "OtherCity": "1470", "RemoteArea": "1575", "type": "Food"},
+                    {"Kg": "22", "BKK": "1276", "OtherCity": "1496", "RemoteArea": "1606", "type": "Food"},
+                    {"Kg": "23", "BKK": "1288", "OtherCity": "1518", "RemoteArea": "1633", "type": "Food"},
+                    {"Kg": "24", "BKK": "1296", "OtherCity": "1536", "RemoteArea": "1656", "type": "Food"},
+                    {"Kg": "25", "BKK": "1325", "OtherCity": "1575", "RemoteArea": "1700", "type": "Food"},
+                    {"Kg": "26", "BKK": "1352", "OtherCity": "1612", "RemoteArea": "1742", "type": "Food"},
+                    {"Kg": "27", "BKK": "1377", "OtherCity": "1647", "RemoteArea": "1782", "type": "Food"},
+                    {"Kg": "28", "BKK": "1428", "OtherCity": "1708", "RemoteArea": "1848", "type": "Food"},
+                    {"Kg": "29", "BKK": "1450", "OtherCity": "1740", "RemoteArea": "1885", "type": "Food"},
+                    {"Kg": "30", "BKK": "1500", "OtherCity": "1800", "RemoteArea": "1950", "type": "Food"},
+                    {"Kg": "30-40", "BKK": "45/kg", "OtherCity": "55/kg", "RemoteArea": "60/kg", "type": "Food"},
+                    {"Kg": "40-50", "BKK": "43/kg", "OtherCity": "53/kg", "RemoteArea": "58/kg", "type": "Food"},
+                    {"Kg": "50-70", "BKK": "40/kg", "OtherCity": "50/kg", "RemoteArea": "55/kg", "type": "Food"},
+                    {"Kg": "70-100", "BKK": "35/kg", "OtherCity": "45/kg", "RemoteArea": "50/kg", "type": "Food"},
+                    {"Kg": "100", "BKK": "33/kg", "OtherCity": "43/kg", "RemoteArea": "48/kg", "type": "Food"},
+                    {"Kg": "200", "BKK": "32/kg", "OtherCity": "42/kg", "RemoteArea": "47/kg", "type": "Food"},
+                    {"Kg": "300", "BKK": "30/kg", "OtherCity": "40/kg", "RemoteArea": "45/kg", "type": "Food"},
+                    {"Kg": "300-1000", "BKK": "28/kg", "OtherCity": "38/kg", "RemoteArea": "43/kg", "type": "Food"}
+                ],
+                "Cosmetic": [
+                    {"Kg": "1", "BKK": "70", "OtherCity": "80", "RemoteArea": "85", "type": "Cosmetic"},
+                    {"Kg": "2", "BKK": "160", "OtherCity": "180", "RemoteArea": "190", "type": "Cosmetic"},
+                    {"Kg": "3", "BKK": "240", "OtherCity": "270", "RemoteArea": "285", "type": "Cosmetic"},
+                    {"Kg": "4", "BKK": "320", "OtherCity": "360", "RemoteArea": "380", "type": "Cosmetic"},
+                    {"Kg": "5", "BKK": "400", "OtherCity": "450", "RemoteArea": "475", "type": "Cosmetic"},
+                    {"Kg": "6", "BKK": "480", "OtherCity": "540", "RemoteArea": "570", "type": "Cosmetic"},
+                    {"Kg": "7", "BKK": "560", "OtherCity": "630", "RemoteArea": "665", "type": "Cosmetic"},
+                    {"Kg": "8", "BKK": "640", "OtherCity": "720", "RemoteArea": "760", "type": "Cosmetic"},
+                    {"Kg": "9", "BKK": "720", "OtherCity": "810", "RemoteArea": "855", "type": "Cosmetic"},
+                    {"Kg": "10", "BKK": "800", "OtherCity": "900", "RemoteArea": "950", "type": "Cosmetic"},
+                    {"Kg": "11", "BKK": "880", "OtherCity": "990", "RemoteArea": "1045", "type": "Cosmetic"},
+                    {"Kg": "12", "BKK": "960", "OtherCity": "1080", "RemoteArea": "1140", "type": "Cosmetic"},
+                    {"Kg": "13", "BKK": "1040", "OtherCity": "1170", "RemoteArea": "1235", "type": "Cosmetic"},
+                    {"Kg": "14", "BKK": "1120", "OtherCity": "1260", "RemoteArea": "1330", "type": "Cosmetic"},
+                    {"Kg": "15", "BKK": "1200", "OtherCity": "1350", "RemoteArea": "1425", "type": "Cosmetic"},
+                    {"Kg": "16", "BKK": "1280", "OtherCity": "1440", "RemoteArea": "1520", "type": "Cosmetic"},
+                    {"Kg": "17", "BKK": "1360", "OtherCity": "1530", "RemoteArea": "1615", "type": "Cosmetic"},
+                    {"Kg": "18", "BKK": "1440", "OtherCity": "1620", "RemoteArea": "1710", "type": "Cosmetic"},
+                    {"Kg": "19", "BKK": "1520", "OtherCity": "1710", "RemoteArea": "1805", "type": "Cosmetic"},
+                    {"Kg": "20", "BKK": "1600", "OtherCity": "1800", "RemoteArea": "1900", "type": "Cosmetic"},
+                    {"Kg": "21", "BKK": "1785", "OtherCity": "1995", "RemoteArea": "2100", "type": "Cosmetic"},
+                    {"Kg": "22", "BKK": "1870", "OtherCity": "2090", "RemoteArea": "2200", "type": "Cosmetic"},
+                    {"Kg": "23", "BKK": "1955", "OtherCity": "2185", "RemoteArea": "2300", "type": "Cosmetic"},
+                    {"Kg": "24", "BKK": "2040", "OtherCity": "2280", "RemoteArea": "2400", "type": "Cosmetic"},
+                    {"Kg": "25", "BKK": "2125", "OtherCity": "2375", "RemoteArea": "2500", "type": "Cosmetic"},
+                    {"Kg": "26", "BKK": "2210", "OtherCity": "2470", "RemoteArea": "2600", "type": "Cosmetic"},
+                    {"Kg": "27", "BKK": "2430", "OtherCity": "2700", "RemoteArea": "2835", "type": "Cosmetic"},
+                    {"Kg": "28", "BKK": "2520", "OtherCity": "2800", "RemoteArea": "2940", "type": "Cosmetic"},
+                    {"Kg": "29", "BKK": "2610", "OtherCity": "2900", "RemoteArea": "3045", "type": "Cosmetic"},
+                    {"Kg": "30", "BKK": "2700", "OtherCity": "3000", "RemoteArea": "3150", "type": "Cosmetic"},
+                    {"Kg": "30-50", "BKK": "75/kg", "OtherCity": "85/kg", "RemoteArea": "90/kg", "type": "Cosmetic"},
+                    {"Kg": "50-100", "BKK": "70/kg", "OtherCity": "80/kg", "RemoteArea": "85/kg", "type": "Cosmetic"},
+                    {"Kg": "200", "BKK": "65/kg", "OtherCity": "75/kg", "RemoteArea": "90/kg", "type": "Cosmetic"},
+                    {"Kg": "300", "BKK": "65/kg", "OtherCity": "75/kg", "RemoteArea": "90/kg", "type": "Cosmetic"},
+                    {"Kg": "300-1000", "BKK": "65/kg", "OtherCity": "75/kg", "RemoteArea": "90/kg", "type": "Cosmetic"}
+                ]
+            },
+            "MWD-BKK": {
+                "Food": [
+                    {"Kg": "1", "BKK": "75", "OtherCity": "85", "RemoteArea": "90", "type": "Food"},
+                    {"Kg": "2", "BKK": "119", "OtherCity": "139", "RemoteArea": "149", "type": "Food"},
+                    {"Kg": "3", "BKK": "179", "OtherCity": "209", "RemoteArea": "224", "type": "Food"},
+                    {"Kg": "4", "BKK": "238", "OtherCity": "278", "RemoteArea": "298", "type": "Food"},
+                    {"Kg": "5", "BKK": "298", "OtherCity": "348", "RemoteArea": "373", "type": "Food"},
+                    {"Kg": "6", "BKK": "357", "OtherCity": "417", "RemoteArea": "447", "type": "Food"},
+                    {"Kg": "7", "BKK": "417", "OtherCity": "487", "RemoteArea": "522", "type": "Food"},
+                    {"Kg": "8", "BKK": "476", "OtherCity": "556", "RemoteArea": "596", "type": "Food"},
+                    {"Kg": "9", "BKK": "536", "OtherCity": "626", "RemoteArea": "671", "type": "Food"},
+                    {"Kg": "10", "BKK": "595", "OtherCity": "695", "RemoteArea": "745", "type": "Food"},
+                    {"Kg": "11", "BKK": "655", "OtherCity": "765", "RemoteArea": "820", "type": "Food"},
+                    {"Kg": "12", "BKK": "714", "OtherCity": "834", "RemoteArea": "894", "type": "Food"},
+                    {"Kg": "13", "BKK": "774", "OtherCity": "904", "RemoteArea": "969", "type": "Food"},
+                    {"Kg": "14", "BKK": "809", "OtherCity": "949", "RemoteArea": "1019", "type": "Food"},
+                    {"Kg": "15", "BKK": "867", "OtherCity": "1017", "RemoteArea": "1092", "type": "Food"},
+                    {"Kg": "16", "BKK": "911", "OtherCity": "1071", "RemoteArea": "1151", "type": "Food"},
+                    {"Kg": "17", "BKK": "968", "OtherCity": "1138", "RemoteArea": "1223", "type": "Food"},
+                    {"Kg": "18", "BKK": "995", "OtherCity": "1175", "RemoteArea": "1265", "type": "Food"},
+                    {"Kg": "19", "BKK": "1034", "OtherCity": "1224", "RemoteArea": "1319", "type": "Food"},
+                    {"Kg": "20", "BKK": "1054", "OtherCity": "1254", "RemoteArea": "1354", "type": "Food"},
+                    {"Kg": "21", "BKK": "1071", "OtherCity": "1281", "RemoteArea": "1386", "type": "Food"},
+                    {"Kg": "22", "BKK": "1085", "OtherCity": "1305", "RemoteArea": "1415", "type": "Food"},
+                    {"Kg": "23", "BKK": "1095", "OtherCity": "1325", "RemoteArea": "1440", "type": "Food"},
+                    {"Kg": "24", "BKK": "1102", "OtherCity": "1342", "RemoteArea": "1462", "type": "Food"},
+                    {"Kg": "25", "BKK": "1126", "OtherCity": "1376", "RemoteArea": "1501", "type": "Food"},
+                    {"Kg": "26", "BKK": "1149", "OtherCity": "1409", "RemoteArea": "1539", "type": "Food"},
+                    {"Kg": "27", "BKK": "1170", "OtherCity": "1440", "RemoteArea": "1575", "type": "Food"},
+                    {"Kg": "28", "BKK": "1214", "OtherCity": "1494", "RemoteArea": "1634", "type": "Food"},
+                    {"Kg": "29", "BKK": "1233", "OtherCity": "1523", "RemoteArea": "1668", "type": "Food"},
+                    {"Kg": "30", "BKK": "1275", "OtherCity": "1575", "RemoteArea": "1725", "type": "Food"},
+                    {"Kg": "30-40", "BKK": "38/kg", "OtherCity": "48/kg", "RemoteArea": "53/kg", "type": "Food"},
+                    {"Kg": "40-50", "BKK": "37/kg", "OtherCity": "47/kg", "RemoteArea": "52/kg", "type": "Food"},
+                    {"Kg": "50-70", "BKK": "34/kg", "OtherCity": "44/kg", "RemoteArea": "49/kg", "type": "Food"},
+                    {"Kg": "70-100", "BKK": "30/kg", "OtherCity": "40/kg", "RemoteArea": "45/kg", "type": "Food"},
+                    {"Kg": "100", "BKK": "28/kg", "OtherCity": "38/kg", "RemoteArea": "43/kg", "type": "Food"},
+                    {"Kg": "200", "BKK": "27/kg", "OtherCity": "37/kg", "RemoteArea": "42/kg", "type": "Food"},
+                    {"Kg": "300", "BKK": "26/kg", "OtherCity": "36/kg", "RemoteArea": "41/kg", "type": "Food"},
+      }
                 }
                 rows[i].style.display = match ? '' : 'none';
             }
